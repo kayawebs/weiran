@@ -20,13 +20,13 @@
 
 ## 本地启动
 
-1. 准备环境文件：
+1. 准备后端与 Docker Compose 的服务器环境文件：
 
    ```bash
    cp .env.example .env
    ```
 
-2. 在 `.env` 配置阿里云 OSS Bucket、RAM AccessKey，以及微信小程序 `AppID/AppSecret`。同时修改 `POSTGRES_PASSWORD` 为强密码；生产环境还必须关闭 `ALLOW_INSECURE_DEV_AUTH`。
+2. 根目录 `.env` 只供后端、Worker 和 Docker Compose 使用。在其中配置阿里云 OSS Bucket、RAM AccessKey、微信小程序 `AppID/AppSecret`，并将 `POSTGRES_PASSWORD` 改为强密码；生产环境还必须关闭 `ALLOW_INSECURE_DEV_AUTH`。该文件不会进入 Web 镜像或浏览器。
 
 3. 启动应用和迁移：
 
@@ -46,7 +46,7 @@ npm run dev:worker
 npm run dev:web
 ```
 
-Vite 开发服务器默认在 `http://localhost:5173`。本地联调时可在 `apps/web/.env.local` 设置 `VITE_API_BASE_URL=http://localhost:3000`，并将该地址加入后端 `CORS_ORIGINS`。正式部署推荐由内置 Nginx 将同域 `/api/*` 转发给 API，无需将 API 端口暴露到公网。
+Vite 开发服务器默认在 `http://localhost:5173`，并已将 `/api` 代理到本地 API。Web 自己的环境文件是 `apps/web/.env.local` 或构建参数，其中只能出现可公开的 `VITE_*` 配置；默认只需 `VITE_API_BASE_URL=/api`。微信密钥、JWT 密钥、OSS AccessKey、数据库密码等服务器秘密严禁写入 Web 环境文件。正式部署由内置 Nginx 将同域 `/api/*` 转发给 API，无需将 API 端口暴露到公网。
 
 ## API 快速示例
 
@@ -94,7 +94,7 @@ POST /v1/tasks
 - `/tasks/:id`：轮询任务、预览并下载全部结果
 - `/history`：当前浏览器匿名身份下的最近任务
 
-Web 首次调用后端时自动获取匿名 JWT，任务历史绑定该浏览器中的令牌。清除站点数据后不会自动找回旧匿名身份；后续可在不改变 Task API 的前提下增加邮箱或 OAuth 登录。
+Web 首次调用后端时自动获取匿名 JWT，JWT 由后端签发，Web 不持有签名密钥。任务历史绑定该浏览器中的令牌；清除站点数据后不会自动找回旧匿名身份，后续可在不改变 Task API 的前提下增加邮箱或 OAuth 登录。
 
 阿里云服务器的完整 HTTPS、OSS CORS 和上线步骤见 [Web 部署说明](docs/web-deployment.md)。
 

@@ -16,9 +16,19 @@ Web、API、Worker、PostgreSQL 和 Redis 由 Docker Compose 运行。阿里云 
 2. 安全组只开放 `22`、`80`、`443`；不要开放 PostgreSQL、Redis、`3000` 或 `8080`。
 3. 如果服务器位于中国大陆，域名投入公开服务前需完成 ICP 备案；境外地域服务器通常不要求中国大陆 ICP，但域名、内容与目标市场仍需遵守当地要求。
 
-## 2. 生产环境变量
+## 2. Web 环境变量（公开配置）
 
-复制 `.env.example` 为 `.env`，至少修改以下项目：
+Web 只需要 API 地址。项目已经提供 `apps/web/.env.example`：
+
+```dotenv
+VITE_API_BASE_URL=/api
+```
+
+正式 Docker 镜像也通过公开构建参数将它设为 `/api`。Web 不需要、也不得配置微信密钥、JWT 密钥、OSS AccessKey 或数据库密码。Vite 会把所有 `VITE_*` 值编译进浏览器 JavaScript，因此只能在这里放允许任何访客看到的配置。
+
+## 3. 后端与 Docker Compose 环境变量（服务器秘密）
+
+根目录 `.env.example` 是服务器配置模板，不是 Web 环境文件。将它复制为根目录 `.env`，至少修改以下项目：
 
 ```dotenv
 NODE_ENV=production
@@ -39,9 +49,9 @@ OSS_ACCESS_KEY_SECRET=<RAM用户AccessKeySecret>
 OSS_INTERNAL_ENDPOINT=oss-cn-hangzhou-internal.aliyuncs.com
 ```
 
-Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。如果以后从独立域名调用 API，填写逗号分隔的完整 HTTPS Origin，例如 `https://tools.example.com,https://app.example.com`。
+根目录 `.env` 只会挂载给迁移、API 和 Worker 容器；Web 容器不会读取它，其中的秘密不会进入前端构建产物。Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。如果以后从独立域名调用 API，填写逗号分隔的完整 HTTPS Origin，例如 `https://tools.example.com,https://app.example.com`。
 
-## 3. OSS 设置
+## 4. OSS 设置
 
 Bucket 保持私有读写，并使用仅允许该 Bucket/前缀的 RAM 用户。浏览器会直传 OSS，因此在 OSS 控制台为 Bucket 添加跨域规则：
 
@@ -53,7 +63,7 @@ Bucket 保持私有读写，并使用仅允许该 Bucket/前缀的 RAM 用户。
 
 生产 API/Worker 在同地域 ECS 时，配置 `OSS_INTERNAL_ENDPOINT` 可让服务端下载和上传走内网；浏览器获得的签名地址仍由 SDK 使用公网 Endpoint。
 
-## 4. 启动全部容器
+## 5. 启动全部容器
 
 在项目根目录执行：
 
@@ -66,7 +76,7 @@ curl http://127.0.0.1:3000/health
 
 Compose 会依次启动 PostgreSQL、迁移、Redis、API、Worker 和 Web。数据库与 Redis 数据分别保存在命名卷 `postgres-data`、`redis-data`。
 
-## 5. 配置公网 HTTPS
+## 6. 配置公网 HTTPS
 
 宿主机 Nginx 示例：
 
@@ -96,7 +106,7 @@ server {
 
 证书可以使用阿里云 SSL 证书或 Certbot。确认 `https://tools.example.com/healthz` 和 `https://tools.example.com/api/health` 均返回成功。
 
-## 6. 微信小程序共用 API
+## 7. 微信小程序共用 API
 
 将小程序 `apps/miniprogram/app.js` 的 API 地址设置为：
 
@@ -110,7 +120,7 @@ https://tools.example.com/api
 - uploadFile 合法域名：OSS 公网域名或绑定的 OSS 自定义域名
 - downloadFile 合法域名：OSS 公网域名或绑定的 OSS 自定义域名
 
-## 7. 更新与回滚前准备
+## 8. 更新与回滚前准备
 
 常规更新：
 
