@@ -79,10 +79,11 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/health", async () => {
     await pool.query("SELECT 1");
-    return { ok: true, service: "creator-tools-api" };
+    return { ok: true, service: "creator-tools-api", market: env.DEPLOYMENT_MARKET };
   });
 
   app.get("/v1/capabilities", async () => ({
+    deployment: { market: env.DEPLOYMENT_MARKET, defaultLocale: env.DEPLOYMENT_MARKET === "cn" ? "zh-CN" : "en" },
     taskTypes: ["IMAGE_WATERMARK_REMOVE", "VIDEO_WATERMARK_REMOVE", "SOURCE_DOWNLOAD"],
     videoWatermarkPlatforms: listVideoPlatforms().map((platform) => ({
       id: platform.id,

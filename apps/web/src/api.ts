@@ -1,4 +1,5 @@
 import type { ResultResponse, Task, WatermarkRegion } from "./types";
+import { copy } from "./i18n/copy";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "/api";
 const TOKEN_KEY = "weiran_access_token";
@@ -11,7 +12,7 @@ export class ApiError extends Error {
 
 async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({})) as { message?: string; code?: string };
-  if (!response.ok) throw new ApiError(payload.message ?? "The request could not be completed.", response.status, payload.code);
+  if (!response.ok) throw new ApiError(copy.api.error(payload.code, payload.message), response.status, payload.code);
   return payload as T;
 }
 
@@ -57,7 +58,7 @@ async function uploadImage(file: File): Promise<string> {
   for (const [key, value] of Object.entries(prepared.upload.fields)) form.append(key, value);
   form.append("file", file);
   const uploadResponse = await fetch(prepared.upload.url, { method: "POST", body: form });
-  if (!uploadResponse.ok) throw new ApiError("The image could not be uploaded.", uploadResponse.status);
+  if (!uploadResponse.ok) throw new ApiError(copy.api.uploadFailed, uploadResponse.status);
 
   await request(`/v1/assets/${prepared.assetId}/complete`, { method: "POST", body: "{}" });
   return prepared.assetId;

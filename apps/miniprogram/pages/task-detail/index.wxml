@@ -25,6 +25,7 @@
       >保存到相册</button>
     </view>
     <button class="secondary-button" bindtap="openTaskHistory">查看文件记录</button>
+    <ad-slot placement="result-footer" />
   </view>
 
   <view wx:if="{{errorMessage}}" class="card error-card">

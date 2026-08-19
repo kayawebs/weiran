@@ -43,7 +43,7 @@ services:
       DATABASE_URL: postgresql://creator:${POSTGRES_PASSWORD:-creator}@postgres:5432/creator_tools
       REDIS_URL: redis://redis:6379
     command: npm run start:api
-    ports: ["127.0.0.1:3000:3000"]
+    ports: ["127.0.0.1:${API_PUBLIC_PORT:-3000}:3000"]
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
       interval: 10s
@@ -76,6 +76,11 @@ services:
       dockerfile: infra/web.Dockerfile
       args:
         VITE_API_BASE_URL: /api
+        VITE_MARKET: ${DEPLOYMENT_MARKET:-global}
+        VITE_WEB_AD_PROVIDER: ${WEB_AD_PROVIDER:-none}
+        VITE_AD_SLOT_HOME: ${WEB_AD_SLOT_HOME:-}
+        VITE_AD_SLOT_TOOLS: ${WEB_AD_SLOT_TOOLS:-}
+        VITE_AD_SLOT_RESULT: ${WEB_AD_SLOT_RESULT:-}
     ports: ["127.0.0.1:${WEB_PORT:-8080}:80"]
     depends_on:
       api:

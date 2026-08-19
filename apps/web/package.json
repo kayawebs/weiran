@@ -5,7 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vite --host 0.0.0.0",
+    "dev:cn": "vite --host 0.0.0.0 --mode cn",
+    "dev:global": "vite --host 0.0.0.0 --mode global",
     "build": "tsc -b && vite build",
+    "build:cn": "tsc -b && vite build --mode cn",
+    "build:global": "tsc -b && vite build --mode global",
     "typecheck": "tsc -b --pretty false",
     "preview": "vite preview --host 0.0.0.0"
   },

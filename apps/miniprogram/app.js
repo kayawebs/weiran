@@ -1,9 +1,11 @@
 const api = require("./services/api");
+const marketConfig = require("./config/market");
 
 App({
   globalData: {
     // 替换为已备案且配置到小程序 request 合法域名的 API 地址。
-    apiBaseUrl: "http://127.0.0.1:3000"
+    apiBaseUrl: "http://127.0.0.1:3000",
+    marketConfig
   },
   onLaunch() {
     this.ensureSession().catch(() => undefined);

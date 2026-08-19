@@ -9,6 +9,7 @@ const optionalEnvString = (schema: z.ZodString) => z.preprocess(
 
 const envSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  DEPLOYMENT_MARKET: z.enum(["cn", "global"]).default("global"),
   API_HOST: z.string().default("0.0.0.0"),
   API_PORT: z.coerce.number().int().positive().default(3000),
   LOG_LEVEL: z.enum(["fatal", "error", "warn", "info", "debug", "trace"]).default("info"),
@@ -41,8 +42,11 @@ const envSchema = z.object({
   if (configuration.NODE_ENV === "production" && configuration.ALLOW_INSECURE_DEV_AUTH) {
     context.addIssue({ code: z.ZodIssueCode.custom, message: "ALLOW_INSECURE_DEV_AUTH must be false in production" });
   }
-  if (configuration.NODE_ENV === "production" && (!configuration.WECHAT_APP_ID || !configuration.WECHAT_APP_SECRET || !configuration.JWT_SECRET)) {
-    context.addIssue({ code: z.ZodIssueCode.custom, message: "WeChat and JWT credentials are required in production" });
+  if (configuration.NODE_ENV === "production" && !configuration.JWT_SECRET) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "JWT_SECRET is required in production" });
+  }
+  if (configuration.NODE_ENV === "production" && configuration.DEPLOYMENT_MARKET === "cn" && (!configuration.WECHAT_APP_ID || !configuration.WECHAT_APP_SECRET)) {
+    context.addIssue({ code: z.ZodIssueCode.custom, message: "WeChat credentials are required for the cn deployment" });
   }
 });
 

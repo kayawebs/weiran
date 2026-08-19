@@ -1,0 +1,1 @@
+<view wx:if="{{visible}}" class="ad-slot"><ad unit-id="{{unitId}}" binderror="onAdError" /></view>

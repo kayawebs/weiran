@@ -10,4 +10,5 @@
       </view>
     </view>
   </view>
+  <ad-slot placement="tools-inline" />
 </view>

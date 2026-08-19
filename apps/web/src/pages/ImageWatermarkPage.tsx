@@ -2,6 +2,7 @@ import { type ChangeEvent, type PointerEvent, useEffect, useRef, useState } from
 import { useNavigate } from "react-router-dom";
 import { api, ApiError } from "../api";
 import { PageIntro } from "../components/PageIntro";
+import { copy } from "../i18n/copy";
 import type { WatermarkRegion } from "../types";
 
 type Point = { x: number; y: number };
@@ -23,7 +24,7 @@ export function ImageWatermarkPage() {
   function chooseFile(event: ChangeEvent<HTMLInputElement>) {
     const selected = event.target.files?.[0] ?? null;
     if (!selected) return;
-    if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type)) { setError("Choose a JPG, PNG, or WebP image."); return; }
+    if (!["image/jpeg", "image/png", "image/webp"].includes(selected.type)) { setError(copy.image.invalidFile); return; }
     if (previewUrl) URL.revokeObjectURL(previewUrl);
     setFile(selected);
     setPreviewUrl(URL.createObjectURL(selected));
@@ -58,13 +59,13 @@ export function ImageWatermarkPage() {
 
   async function submit() {
     setError("");
-    if (!file || !region || region.width < 0.005 || region.height < 0.005) { setError("Draw a box over the watermark before continuing."); return; }
+    if (!file || !region || region.width < 0.005 || region.height < 0.005) { setError(copy.image.selectError); return; }
     setSubmitting(true);
     try {
       const task = await api.createImageTask(file, region, mode);
       navigate(`/tasks/${task.id}`);
     } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : "We could not start this task.");
+      setError(cause instanceof ApiError ? cause.message : copy.image.startError);
     } finally {
       setSubmitting(false);
     }
@@ -72,31 +73,31 @@ export function ImageWatermarkPage() {
 
   return (
     <>
-      <PageIntro eyebrow="IMAGE · CLEANUP" title="Remove what gets in the way." description="Upload an authorized image and draw directly over the watermark. We restore the selected area while preserving the rest." aside={<span className="large-number">1×<br /><small>REGION PER TASK</small></span>} />
+      <PageIntro eyebrow={copy.image.eyebrow} title={copy.image.title} description={copy.image.description} aside={<span className="large-number">1×<br /><small>{copy.image.limit}</small></span>} />
       <section className="image-workspace">
         <div className="image-stage-panel">
-          <div className="step-heading"><span>01</span><div><h2>Upload and mark the area</h2><p>Drag a rectangle around the entire watermark.</p></div></div>
+          <div className="step-heading"><span>01</span><div><h2>{copy.image.uploadTitle}</h2><p>{copy.image.uploadHint}</p></div></div>
           {!previewUrl ? (
-            <button className="upload-dropzone" type="button" onClick={() => inputRef.current?.click()}><span>＋</span><strong>Choose an image</strong><small>JPG, PNG, or WebP</small></button>
+            <button className="upload-dropzone" type="button" onClick={() => inputRef.current?.click()}><span>＋</span><strong>{copy.image.choose}</strong><small>{copy.image.formats}</small></button>
           ) : (
             <div className="selection-shell">
               <div className="selection-stage" onPointerDown={beginSelection} onPointerMove={moveSelection} onPointerUp={endSelection} onPointerCancel={endSelection}>
-                <img src={previewUrl} alt="Selected source" draggable={false} />
-                {region && <span className="selection-box" style={{ left: `${region.x * 100}%`, top: `${region.y * 100}%`, width: `${region.width * 100}%`, height: `${region.height * 100}%` }}><i>REMOVE</i></span>}
+                <img src={previewUrl} alt={copy.image.sourceAlt} draggable={false} />
+                {region && <span className="selection-box" style={{ left: `${region.x * 100}%`, top: `${region.y * 100}%`, width: `${region.width * 100}%`, height: `${region.height * 100}%` }}><i>{copy.image.removeMarker}</i></span>}
               </div>
-              <button type="button" className="text-button" onClick={() => inputRef.current?.click()}>Choose a different image</button>
+              <button type="button" className="text-button" onClick={() => inputRef.current?.click()}>{copy.image.chooseAgain}</button>
             </div>
           )}
           <input ref={inputRef} className="visually-hidden" type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseFile} />
         </div>
         <aside className="image-controls">
-          <div className="step-heading"><span>02</span><div><h2>Choose a finish</h2><p>Smart repair works best for most backgrounds.</p></div></div>
-          <label className={mode === "inpaint" ? "mode-option selected" : "mode-option"}><input type="radio" name="mode" checked={mode === "inpaint"} onChange={() => setMode("inpaint")} /><span><strong>Smart repair</strong><small>Rebuild the selected background</small></span><i>Recommended</i></label>
-          <label className={mode === "blur" ? "mode-option selected" : "mode-option"}><input type="radio" name="mode" checked={mode === "blur"} onChange={() => setMode("blur")} /><span><strong>Soft blur</strong><small>Obscure the selected area</small></span></label>
-          {region && <div className="region-readout"><span>Selected area</span><strong>{Math.round(region.width * 100)}% × {Math.round(region.height * 100)}%</strong></div>}
+          <div className="step-heading"><span>02</span><div><h2>{copy.image.finishTitle}</h2><p>{copy.image.finishHint}</p></div></div>
+          <label className={mode === "inpaint" ? "mode-option selected" : "mode-option"}><input type="radio" name="mode" checked={mode === "inpaint"} onChange={() => setMode("inpaint")} /><span><strong>{copy.image.repair}</strong><small>{copy.image.repairHint}</small></span><i>{copy.image.recommended}</i></label>
+          <label className={mode === "blur" ? "mode-option selected" : "mode-option"}><input type="radio" name="mode" checked={mode === "blur"} onChange={() => setMode("blur")} /><span><strong>{copy.image.blur}</strong><small>{copy.image.blurHint}</small></span></label>
+          {region && <div className="region-readout"><span>{copy.image.selectedArea}</span><strong>{Math.round(region.width * 100)}% × {Math.round(region.height * 100)}%</strong></div>}
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button type="button" className="primary-action full-button" onClick={submit} disabled={!file || !region || submitting}>{submitting ? "Uploading…" : "Remove watermark"}<span>→</span></button>
-          <p className="fine-print">Your file uploads directly to private object storage. The download link expires automatically.</p>
+          <button type="button" className="primary-action full-button" onClick={submit} disabled={!file || !region || submitting}>{submitting ? copy.image.uploading : copy.image.submit}<span>→</span></button>
+          <p className="fine-print">{copy.image.privacy}</p>
         </aside>
       </section>
     </>

@@ -1,4 +1,6 @@
-# 未然Lab 英文 Web 部署（阿里云）
+# 未然Lab Web 部署（阿里云）
+
+本文描述通用 Web HTTPS 部署。国内/海外双区域的代码边界、环境模板和发布策略见 [双区域架构](multi-region-architecture.md)。海外使用 `deploy/global.env.example`，国内使用 `deploy/cn.env.example`。
 
 推荐用一个公网域名承载 Web 和 API：
 
@@ -18,20 +20,23 @@ Web、API、Worker、PostgreSQL 和 Redis 由 Docker Compose 运行。阿里云 
 
 ## 2. Web 环境变量（公开配置）
 
-Web 只需要 API 地址。项目已经提供 `apps/web/.env.example`：
+Web 只接收公开的区域、API 与广告位配置。项目已经提供 `apps/web/.env.cn` 和 `apps/web/.env.global`，核心字段为：
 
 ```dotenv
 VITE_API_BASE_URL=/api
+VITE_MARKET=cn|global
+VITE_WEB_AD_PROVIDER=none
 ```
 
 正式 Docker 镜像也通过公开构建参数将它设为 `/api`。Web 不需要、也不得配置微信密钥、JWT 密钥、OSS AccessKey 或数据库密码。Vite 会把所有 `VITE_*` 值编译进浏览器 JavaScript，因此只能在这里放允许任何访客看到的配置。
 
 ## 3. 后端与 Docker Compose 环境变量（服务器秘密）
 
-根目录 `.env.example` 是服务器配置模板，不是 Web 环境文件。将它复制为根目录 `.env`，至少修改以下项目：
+根目录 `.env.example` 是通用服务器配置模板，不是 Web 环境文件。双区域部署优先复制对应的 `deploy/*.env.example`；以下内容均属于服务器端配置：
 
 ```dotenv
 NODE_ENV=production
+DEPLOYMENT_MARKET=cn|global
 TRUST_PROXY=true
 CORS_ORIGINS=
 ALLOW_INSECURE_DEV_AUTH=false
@@ -39,6 +44,7 @@ ENABLE_WEB_GUEST_AUTH=true
 JWT_SECRET=<至少32字符的随机高强度密钥>
 POSTGRES_PASSWORD=<数据库强密码>
 
+# 仅国内部署需要
 WECHAT_APP_ID=wxa5c763c97869a2aa
 WECHAT_APP_SECRET=<微信小程序密钥>
 
@@ -46,10 +52,10 @@ OSS_REGION=oss-cn-hangzhou
 OSS_BUCKET=<私有Bucket名称>
 OSS_ACCESS_KEY_ID=<RAM用户AccessKey>
 OSS_ACCESS_KEY_SECRET=<RAM用户AccessKeySecret>
-OSS_INTERNAL_ENDPOINT=oss-cn-hangzhou-internal.aliyuncs.com
+OSS_INTERNAL_ENDPOINT=https://oss-cn-hangzhou-internal.aliyuncs.com
 ```
 
-根目录 `.env` 只会挂载给迁移、API 和 Worker 容器；Web 容器不会读取它，其中的秘密不会进入前端构建产物。Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。如果以后从独立域名调用 API，填写逗号分隔的完整 HTTPS Origin，例如 `https://tools.example.com,https://app.example.com`。
+区域服务器环境文件会挂载给迁移、API 和 Worker；Compose 只把明确列出的 `WEB_AD_*` 与 `DEPLOYMENT_MARKET` 作为公开构建参数交给 Web。Web 容器不会读取其他变量，服务器秘密不会进入前端构建产物。Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。
 
 ## 4. OSS 设置
 
@@ -65,11 +71,27 @@ Bucket 保持私有读写，并使用仅允许该 Bucket/前缀的 RAM 用户。
 
 ## 5. 启动全部容器
 
-在项目根目录执行：
+国内服务器在项目根目录执行：
 
 ```bash
-docker compose up -d --build
-docker compose ps
+cp deploy/cn.env.example deploy/cn.env
+# 编辑 deploy/cn.env
+docker compose --env-file deploy/cn.env up -d --build
+```
+
+海外服务器执行：
+
+```bash
+cp deploy/global.env.example deploy/global.env
+# 编辑 deploy/global.env
+docker compose --env-file deploy/global.env up -d --build
+```
+
+启动后检查：
+
+```bash
+docker compose --env-file deploy/cn.env ps
+# 海外服务器将 cn.env 替换为 global.env
 curl http://127.0.0.1:8080/healthz
 curl http://127.0.0.1:3000/health
 ```
@@ -126,8 +148,9 @@ https://tools.example.com/api
 
 ```bash
 git pull --ff-only
-docker compose up -d --build
-docker compose ps
+docker compose --env-file deploy/cn.env up -d --build       # 国内
+# 或 docker compose --env-file deploy/global.env up -d --build
+docker compose --env-file deploy/cn.env ps
 ```
 
 更新前备份 PostgreSQL，保留上一版本 Git commit，并检查 Worker 中是否仍有处理任务。数据库迁移容器是一次性任务；任何带破坏性的数据库变更都应单独评审和备份后执行。

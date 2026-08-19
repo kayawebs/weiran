@@ -3,8 +3,11 @@ dist/
 .env
 .env.*
 !.env.example
+!apps/web/.env.cn
+!apps/web/.env.global
 .DS_Store
 coverage/
 *.log
 *.tsbuildinfo
+deploy/*.env
 apps/miniprogram/project.private.config.json

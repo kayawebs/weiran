@@ -21,5 +21,6 @@
       </view>
     </view>
   </view>
+  <ad-slot placement="home-footer" />
   <view class="notice">请仅处理您拥有或已获授权使用的素材。</view>
 </view>
