@@ -1,6 +1,6 @@
 # 未然Lab · AI Creator Tools Platform
 
-面向 AI 创作者和自媒体工作流的素材处理基础设施。第一阶段小程序为 **视频图片去水印**；后台同时具备可扩展的素材获取能力，不把下载逻辑绑定到任何一个产品。
+面向 AI 创作者和自媒体工作流的素材处理基础设施。当前同时提供微信小程序与英文 Web App；二者共享 Task、Worker、PostgreSQL、Redis 和阿里云 OSS，不把下载或处理逻辑绑定到某个客户端。
 
 详细的架构、服务拆分、数据模型、接口、状态机、Worker 和小程序结构见 [架构设计](docs/architecture.md)。
 
@@ -8,14 +8,15 @@
 
 - 统一异步任务模型：`SOURCE_DOWNLOAD`、`IMAGE_WATERMARK_REMOVE`、`VIDEO_WATERMARK_REMOVE`
 - Docker PostgreSQL 任务/资产/事件审计模型，Docker Redis + BullMQ 重试队列，阿里云 OSS 私有存储
-- 图片水印区域：OpenCV inpaint 或模糊处理
 - 图片水印区域：OpenCV inpaint 或模糊处理；视频按来源平台选择解析策略
 - Dola 平台：粘贴公开 Thread URL，自动发现全部视频并解析官方原画 H.264 流，不重编码
 - 受控的 HTTPS 素材解析与下载（来源/媒体主机白名单、私有网络阻断、重定向与体积限制）
 - 可插拔 `SourceExtractor` 与平台定义，后续可继续增加内容平台 connector
 - 原生微信小程序：首页、工具分类、平台选择、URL 提交、多视频结果预览与保存
+- 英文响应式 Web App：首页、工具目录、Dola URL、图片拖拽框选、任务进度、结果下载与浏览器历史，适配 PC 和 Mobile
 - 微信登录：`wx.login → code2Session → JWT`；用户 ID 不再由客户端请求头提供
-- Docker Compose 启动 PostgreSQL、Redis、数据库迁移、API 与 Worker；对象存储使用阿里云 OSS
+- Web 匿名登录：服务端签发受限 JWT；API 跨域白名单与全局限流可通过环境变量配置
+- Docker Compose 启动 PostgreSQL、Redis、数据库迁移、API、Worker 与 Web/Nginx；对象存储使用阿里云 OSS
 
 ## 本地启动
 
@@ -33,7 +34,7 @@
    docker compose up --build
    ```
 
-4. API 健康检查：`http://localhost:3000/health`。
+4. 打开 Web：`http://localhost:8080`；API 健康检查：`http://localhost:3000/health`。
 
 本地不用 Docker 时，需先自行启动 PostgreSQL、Redis，并配置可访问的阿里云 OSS，再依次执行：
 
@@ -42,7 +43,10 @@ npm install
 npm run migrate
 npm run dev:api
 npm run dev:worker
+npm run dev:web
 ```
+
+Vite 开发服务器默认在 `http://localhost:5173`。本地联调时可在 `apps/web/.env.local` 设置 `VITE_API_BASE_URL=http://localhost:3000`，并将该地址加入后端 `CORS_ORIGINS`。正式部署推荐由内置 Nginx 将同域 `/api/*` 转发给 API，无需将 API 端口暴露到公网。
 
 ## API 快速示例
 
@@ -78,6 +82,21 @@ POST /v1/tasks
 接口返回 `202` 和任务 ID；轮询 `GET /v1/tasks/:taskId`。状态为 `SUCCESS` 后调用 `GET /v1/tasks/:taskId/result-url`。响应中的 `files[]` 为每个结果文件提供独立的 OSS 短期下载链接；兼容字段 `downloadUrl` 指向第一个结果。
 
 开发环境会默认创建本地测试用户。部署生产前，必须关闭 `ALLOW_INSECURE_DEV_AUTH`，填写微信与 JWT 环境变量，并将小程序域名、API CORS、OSS 跨域规则配置为实际 HTTPS 域名。
+
+## 英文 Web App
+
+网页入口位于 `apps/web`，路由包括：
+
+- `/`：未然Lab 英文品牌首页与平台工作流
+- `/tools`：素材清理、素材获取、创作辅助分类
+- `/tools/video`：选择 Dola 并提交公开 Thread URL
+- `/tools/image`：上传图片并用鼠标或触控拖拽水印区域
+- `/tasks/:id`：轮询任务、预览并下载全部结果
+- `/history`：当前浏览器匿名身份下的最近任务
+
+Web 首次调用后端时自动获取匿名 JWT，任务历史绑定该浏览器中的令牌。清除站点数据后不会自动找回旧匿名身份；后续可在不改变 Task API 的前提下增加邮箱或 OAuth 登录。
+
+阿里云服务器的完整 HTTPS、OSS CORS 和上线步骤见 [Web 部署说明](docs/web-deployment.md)。
 
 ## 微信小程序
 

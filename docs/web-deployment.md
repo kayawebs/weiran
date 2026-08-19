@@ -1,0 +1,123 @@
+# 未然Lab 英文 Web 部署（阿里云）
+
+推荐用一个公网域名承载 Web 和 API：
+
+```text
+https://tools.example.com/       -> Web
+https://tools.example.com/api/*  -> Backend API
+Web browser -> Alibaba OSS       -> Direct upload / temporary download
+```
+
+Web、API、Worker、PostgreSQL 和 Redis 由 Docker Compose 运行。阿里云 OSS 继续作为私有对象存储。宿主机的 Nginx 或 Caddy 只负责公网 HTTPS，并将流量转发到 `127.0.0.1:8080`。
+
+## 1. 域名与安全组
+
+1. 给服务器绑定公网 IP，并添加域名 A 记录，例如 `tools.example.com`。
+2. 安全组只开放 `22`、`80`、`443`；不要开放 PostgreSQL、Redis、`3000` 或 `8080`。
+3. 如果服务器位于中国大陆，域名投入公开服务前需完成 ICP 备案；境外地域服务器通常不要求中国大陆 ICP，但域名、内容与目标市场仍需遵守当地要求。
+
+## 2. 生产环境变量
+
+复制 `.env.example` 为 `.env`，至少修改以下项目：
+
+```dotenv
+NODE_ENV=production
+TRUST_PROXY=true
+CORS_ORIGINS=
+ALLOW_INSECURE_DEV_AUTH=false
+ENABLE_WEB_GUEST_AUTH=true
+JWT_SECRET=<至少32字符的随机高强度密钥>
+POSTGRES_PASSWORD=<数据库强密码>
+
+WECHAT_APP_ID=wxa5c763c97869a2aa
+WECHAT_APP_SECRET=<微信小程序密钥>
+
+OSS_REGION=oss-cn-hangzhou
+OSS_BUCKET=<私有Bucket名称>
+OSS_ACCESS_KEY_ID=<RAM用户AccessKey>
+OSS_ACCESS_KEY_SECRET=<RAM用户AccessKeySecret>
+OSS_INTERNAL_ENDPOINT=oss-cn-hangzhou-internal.aliyuncs.com
+```
+
+Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。如果以后从独立域名调用 API，填写逗号分隔的完整 HTTPS Origin，例如 `https://tools.example.com,https://app.example.com`。
+
+## 3. OSS 设置
+
+Bucket 保持私有读写，并使用仅允许该 Bucket/前缀的 RAM 用户。浏览器会直传 OSS，因此在 OSS 控制台为 Bucket 添加跨域规则：
+
+- 来源：`https://tools.example.com`
+- 允许方法：`GET`、`POST`、`HEAD`
+- 允许 Headers：`*`
+- 暴露 Headers：`ETag`、`x-oss-request-id`
+- 缓存时间：`600`
+
+生产 API/Worker 在同地域 ECS 时，配置 `OSS_INTERNAL_ENDPOINT` 可让服务端下载和上传走内网；浏览器获得的签名地址仍由 SDK 使用公网 Endpoint。
+
+## 4. 启动全部容器
+
+在项目根目录执行：
+
+```bash
+docker compose up -d --build
+docker compose ps
+curl http://127.0.0.1:8080/healthz
+curl http://127.0.0.1:3000/health
+```
+
+Compose 会依次启动 PostgreSQL、迁移、Redis、API、Worker 和 Web。数据库与 Redis 数据分别保存在命名卷 `postgres-data`、`redis-data`。
+
+## 5. 配置公网 HTTPS
+
+宿主机 Nginx 示例：
+
+```nginx
+server {
+  listen 80;
+  server_name tools.example.com;
+  return 301 https://$host$request_uri;
+}
+
+server {
+  listen 443 ssl http2;
+  server_name tools.example.com;
+
+  ssl_certificate /etc/letsencrypt/live/tools.example.com/fullchain.pem;
+  ssl_certificate_key /etc/letsencrypt/live/tools.example.com/privkey.pem;
+
+  location / {
+    proxy_pass http://127.0.0.1:8080;
+    proxy_set_header Host $host;
+    proxy_set_header X-Real-IP $remote_addr;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+  }
+}
+```
+
+证书可以使用阿里云 SSL 证书或 Certbot。确认 `https://tools.example.com/healthz` 和 `https://tools.example.com/api/health` 均返回成功。
+
+## 6. 微信小程序共用 API
+
+将小程序 `apps/miniprogram/app.js` 的 API 地址设置为：
+
+```text
+https://tools.example.com/api
+```
+
+并在微信公众平台添加：
+
+- request 合法域名：`https://tools.example.com`
+- uploadFile 合法域名：OSS 公网域名或绑定的 OSS 自定义域名
+- downloadFile 合法域名：OSS 公网域名或绑定的 OSS 自定义域名
+
+## 7. 更新与回滚前准备
+
+常规更新：
+
+```bash
+git pull --ff-only
+docker compose up -d --build
+docker compose ps
+```
+
+更新前备份 PostgreSQL，保留上一版本 Git commit，并检查 Worker 中是否仍有处理任务。数据库迁移容器是一次性任务；任何带破坏性的数据库变更都应单独评审和备份后执行。

@@ -1,3 +1,4 @@
+import { randomUUID } from "node:crypto";
 import { SignJWT, jwtVerify } from "jose";
 import { z } from "zod";
 import { env } from "../../config/env.js";
@@ -23,6 +24,18 @@ function signingKey(): Uint8Array {
 export type AccessToken = { accessToken: string; expiresInSeconds: number; userId: string };
 
 export class AuthService {
+  private async createAccessToken(userId: string, provider: "wechat" | "web-guest"): Promise<AccessToken> {
+    const accessToken = await new SignJWT({ provider })
+      .setProtectedHeader({ alg: "HS256", typ: "JWT" })
+      .setIssuer(env.JWT_ISSUER)
+      .setAudience(env.JWT_AUDIENCE)
+      .setSubject(userId)
+      .setIssuedAt()
+      .setExpirationTime(`${env.JWT_TTL_SECONDS}s`)
+      .sign(signingKey());
+    return { accessToken, expiresInSeconds: env.JWT_TTL_SECONDS, userId };
+  }
+
   async loginWithWechatCode(code: string): Promise<AccessToken> {
     if (!env.WECHAT_APP_ID || !env.WECHAT_APP_SECRET) {
       throw new AuthenticationError("WeChat login is not configured", "AUTH_NOT_CONFIGURED");
@@ -42,15 +55,15 @@ export class AuthService {
       throw new AuthenticationError(session.errmsg || "WeChat login code is invalid or expired", "WECHAT_LOGIN_FAILED");
     }
     const user = await findOrCreateUserByExternalId(pool, `wechat:${session.openid}`);
-    const accessToken = await new SignJWT({ provider: "wechat" })
-      .setProtectedHeader({ alg: "HS256", typ: "JWT" })
-      .setIssuer(env.JWT_ISSUER)
-      .setAudience(env.JWT_AUDIENCE)
-      .setSubject(user.id)
-      .setIssuedAt()
-      .setExpirationTime(`${env.JWT_TTL_SECONDS}s`)
-      .sign(signingKey());
-    return { accessToken, expiresInSeconds: env.JWT_TTL_SECONDS, userId: user.id };
+    return this.createAccessToken(user.id, "wechat");
+  }
+
+  async createGuestSession(): Promise<AccessToken> {
+    if (!env.ENABLE_WEB_GUEST_AUTH) {
+      throw new AuthenticationError("Web guest access is not enabled", "WEB_GUEST_AUTH_DISABLED");
+    }
+    const user = await findOrCreateUserByExternalId(pool, `web-guest:${randomUUID()}`);
+    return this.createAccessToken(user.id, "web-guest");
   }
 
   async verifyAccessToken(token: string): Promise<{ userId: string }> {

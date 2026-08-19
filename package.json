@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "description": "Task-based media acquisition and processing platform for AI creators.",
-  "workspaces": ["apps/backend"],
+  "workspaces": ["apps/backend", "apps/web"],
   "scripts": {
     "dev:api": "npm run dev:api --workspace=@creator-tools/backend",
     "dev:worker": "npm run dev:worker --workspace=@creator-tools/backend",
-    "build": "npm run build --workspace=@creator-tools/backend",
+    "dev:web": "npm run dev --workspace=@creator-tools/web",
+    "build": "npm run build --workspaces --if-present",
     "test": "npm run test --workspace=@creator-tools/backend",
-    "typecheck": "npm run typecheck --workspace=@creator-tools/backend",
+    "typecheck": "npm run typecheck --workspaces --if-present",
     "migrate": "npm run migrate --workspace=@creator-tools/backend"
   },
   "engines": { "node": ">=22.0.0", "npm": ">=10.0.0" }

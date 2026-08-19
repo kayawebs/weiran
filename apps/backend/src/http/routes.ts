@@ -101,6 +101,14 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     return { accessToken: session.accessToken, expiresInSeconds: session.expiresInSeconds };
   });
 
+  app.post("/v1/auth/guest", {
+    config: { rateLimit: { max: 20, timeWindow: "1 hour" } }
+  }, async (_request, reply) => {
+    const session = await authService.createGuestSession();
+    reply.code(201);
+    return { accessToken: session.accessToken, expiresInSeconds: session.expiresInSeconds };
+  });
+
   app.post("/v1/assets/upload-url", { preHandler: requireAuthentication }, async (request, reply) => {
     const body = uploadSchema.parse(request.body);
     const assetId = randomUUID();
