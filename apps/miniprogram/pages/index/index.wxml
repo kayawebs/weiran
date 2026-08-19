@@ -1,0 +1,25 @@
+<view class="page home-page">
+  <view class="hero-card">
+    <view class="brand-row"><image class="brand-icon" src="/assets/weiran-lab-icon-144.png" mode="aspectFit" /><view><view class="brand-name">未然Lab</view><view class="brand-caption">AI 创作者工具平台</view></view></view>
+    <view class="hero-title">让素材处理更轻松</view>
+    <view class="hero-description">从素材获取、清理，到后续创作加工，未然Lab 为创作者提供统一的工具入口。</view>
+  </view>
+
+  <view class="section-heading"><view><view class="section-title">常用工具</view><view class="section-hint">当前可直接使用</view></view><navigator class="all-link" url="/pages/tools/index">全部工具 ›</navigator></view>
+  <view class="common-grid">
+    <view wx:for="{{commonTools}}" wx:key="id" class="common-card" data-id="{{item.id}}" bindtap="openTool">
+      <view class="tool-symbol {{item.tone}}">{{item.icon}}</view><view class="common-name">{{item.name}}</view><view class="common-description">{{item.description}}</view>
+    </view>
+  </view>
+
+  <view class="section-heading"><view><view class="section-title">工具分类</view><view class="section-hint">按创作工作流逐步扩展</view></view></view>
+  <view wx:for="{{categories}}" wx:key="id" class="category-card">
+    <view class="category-header"><view><view class="category-name">{{item.name}}</view><view class="category-description">{{item.description}}</view></view></view>
+    <view class="category-tools">
+      <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="category-tool" data-id="{{tool.id}}" bindtap="openTool">
+        <view class="tool-symbol small {{tool.tone}}">{{tool.icon}}</view><view class="category-tool-main"><view>{{tool.name}}</view><view class="category-tool-description">{{tool.description}}</view></view><view wx:if="{{tool.badge}}" class="future-badge">{{tool.badge}}</view><view wx:else class="arrow">›</view>
+      </view>
+    </view>
+  </view>
+  <view class="notice">请仅处理您拥有或已获授权使用的素材。</view>
+</view>

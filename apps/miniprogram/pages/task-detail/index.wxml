@@ -1,0 +1,45 @@
+<view class="page">
+  <view class="card status-card">
+    <view class="status-dot {{statusClass}}"></view>
+    <view>
+      <view class="section-title">{{statusLabel}}</view>
+      <view class="muted">{{statusHint}}</view>
+    </view>
+  </view>
+
+  <view wx:if="{{results.length}}" class="results-section">
+    <view class="results-heading">
+      <view class="section-title">处理结果</view>
+      <view class="result-count">共 {{results.length}} 个文件</view>
+    </view>
+    <view wx:for="{{results}}" wx:key="assetId" class="card result-card">
+      <view class="result-title">{{item.label}}</view>
+      <image wx:if="{{item.kind === 'image'}}" class="result-image" src="{{item.downloadUrl}}" mode="widthFix" />
+      <video wx:else class="result-video" src="{{item.downloadUrl}}" poster="{{item.cover}}" controls />
+      <button
+        class="primary-button"
+        data-index="{{index}}"
+        loading="{{downloadingIndex === index}}"
+        disabled="{{downloadingIndex >= 0}}"
+        bindtap="saveResult"
+      >保存到相册</button>
+    </view>
+    <button class="secondary-button" bindtap="openTaskHistory">查看文件记录</button>
+  </view>
+
+  <view wx:if="{{errorMessage}}" class="card error-card">
+    <view class="section-title">处理失败</view>
+    <view class="muted">{{errorMessage}}</view>
+    <button class="retry-button" bindtap="goBack">返回重试</button>
+  </view>
+
+  <view class="timeline">
+    <view wx:for="{{events}}" wx:key="id" class="event">
+      <view class="event-status">{{item.status}}</view>
+      <view>
+        <view>{{item.message}}</view>
+        <view class="event-time">{{item.createdAt}}</view>
+      </view>
+    </view>
+  </view>
+</view>

@@ -1,0 +1,33 @@
+<view class="page video-link-page">
+  <view class="tool-page-intro">
+    <view class="eyebrow">素材获取 · 视频清理</view>
+    <view class="title">视频去水印</view>
+    <view class="subtitle">选择来源平台并粘贴公开链接，未然Lab 会自动识别页面中的视频并生成下载结果。</view>
+  </view>
+
+  <view class="card">
+    <view class="step-row"><view class="step-number">1</view><view><view class="section-title">选择平台</view><view class="muted">不同平台使用独立解析策略</view></view></view>
+    <view class="platform-grid">
+      <view wx:for="{{platforms}}" wx:key="id" class="platform-card {{selectedPlatform === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectPlatform">
+        <view class="platform-logo">D</view>
+        <view class="platform-main"><view class="platform-name">{{item.name}}</view><view class="platform-description">{{item.description}}</view></view>
+        <view class="selected-mark">✓</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="step-row"><view class="step-number">2</view><view><view class="section-title">粘贴链接</view><view class="muted">当前仅支持无需登录即可访问的公开页面</view></view></view>
+    <view class="url-box">
+      <textarea class="url-input" auto-height maxlength="1000" placeholder="{{placeholder}}" value="{{sourceUrl}}" bindinput="onUrlInput" />
+      <button class="paste-button" bindtap="pasteUrl">粘贴</button>
+    </view>
+    <view class="feature-list">
+      <view><text>✓</text> 自动发现页面中的全部视频</view>
+      <view><text>✓</text> 自动匹配平台处理策略</view>
+      <view><text>✓</text> 处理完成后提供独立下载项</view>
+    </view>
+    <button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">解析并处理</button>
+    <view class="rights-notice">提交即表示您确认拥有该素材，或已获得下载和处理授权。</view>
+  </view>
+</view>

@@ -1,0 +1,70 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: creator_tools
+      POSTGRES_USER: creator
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-creator}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U creator -d creator_tools"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    volumes: ["postgres-data:/var/lib/postgresql/data"]
+
+  redis:
+    image: redis:7-alpine
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    volumes: ["redis-data:/data"]
+
+  migrate:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+    env_file: ${ENV_FILE:-.env}
+    environment:
+      DATABASE_URL: postgresql://creator:${POSTGRES_PASSWORD:-creator}@postgres:5432/creator_tools
+    command: npm run migrate:production
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  api:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+    env_file: ${ENV_FILE:-.env}
+    environment:
+      DATABASE_URL: postgresql://creator:${POSTGRES_PASSWORD:-creator}@postgres:5432/creator_tools
+      REDIS_URL: redis://redis:6379
+    command: npm run start:api
+    ports: ["3000:3000"]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: infra/Dockerfile
+    env_file: ${ENV_FILE:-.env}
+    environment:
+      DATABASE_URL: postgresql://creator:${POSTGRES_PASSWORD:-creator}@postgres:5432/creator_tools
+      REDIS_URL: redis://redis:6379
+    command: npm run start:worker
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:

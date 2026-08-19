@@ -1,0 +1,12 @@
+<view class="page profile-page">
+  <view class="profile-card"><image class="profile-icon" src="/assets/weiran-lab-icon-144.png" mode="aspectFit" /><view><view class="profile-name">未然Lab 创作者</view><view class="profile-description">用工具，把时间留给创作</view></view></view>
+
+  <view class="summary-card"><view><view class="summary-number">{{taskCount}}</view><view class="summary-label">历史任务</view></view><view class="summary-divider"></view><view><view class="summary-number">{{resultCount}}</view><view class="summary-label">处理文件</view></view></view>
+
+  <view class="menu-card">
+    <view class="menu-row" data-target="history" bindtap="openTasks"><view class="menu-icon blue">历</view><view class="menu-content"><view>历史任务</view><view>查看全部处理进度</view></view><view class="arrow">›</view></view>
+    <view class="menu-row" data-target="files" bindtap="openTasks"><view class="menu-icon green">件</view><view class="menu-content"><view>文件记录</view><view>查看已完成的处理结果</view></view><view class="arrow">›</view></view>
+    <view class="menu-row" bindtap="showSettings"><view class="menu-icon purple">设</view><view class="menu-content"><view>设置</view><view>账号与使用说明</view></view><view class="arrow">›</view></view>
+  </view>
+  <view class="profile-notice">仅处理您拥有或已获授权使用的素材。</view>
+</view>

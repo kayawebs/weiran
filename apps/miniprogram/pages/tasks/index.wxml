@@ -1,0 +1,6 @@
+<view class="page tasks-page">
+  <view class="filter-header"><view class="title">{{pageTitle}}</view><view class="subtitle">{{pageDescription}}</view></view>
+  <view wx:if="{{loading}}" class="empty-card">正在加载…</view>
+  <view wx:elif="{{tasks.length === 0}}" class="empty-card"><view class="empty-icon">◌</view><view class="empty-title">暂时没有记录</view><view class="empty-description">开始使用素材处理工具后，任务和结果会显示在这里。</view><navigator class="empty-action" url="/pages/tools/index">去工具中心</navigator></view>
+  <view wx:else class="task-list"><view wx:for="{{tasks}}" wx:key="id" class="task-row" data-id="{{item.id}}" data-kind="{{item.kind}}" bindtap="openTask"><view class="task-symbol {{item.tone}}">{{item.icon}}</view><view class="task-main"><view class="task-name">{{item.name}}</view><view class="task-time">{{item.createdAtText}}</view></view><view class="task-status {{item.statusClass}}">{{item.statusText}}</view><view class="arrow">›</view></view></view>
+</view>

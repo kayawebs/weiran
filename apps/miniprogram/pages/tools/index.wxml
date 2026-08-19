@@ -1,0 +1,13 @@
+<view class="page tools-page">
+  <view class="page-intro"><view class="title">工具中心</view><view class="subtitle">围绕 AI 创作者工作流逐步扩展，每一项能力都统一接入任务系统。</view></view>
+  <view wx:for="{{categories}}" wx:key="id" class="category-section">
+    <view class="category-title">{{item.name}}</view><view class="category-subtitle">{{item.description}}</view>
+    <view class="tool-list">
+      <view wx:for="{{item.tools}}" wx:for-item="tool" wx:key="id" class="tool-row" data-id="{{tool.id}}" bindtap="openTool">
+        <view class="tool-symbol {{tool.tone}}">{{tool.icon}}</view>
+        <view class="tool-info"><view class="tool-name">{{tool.name}}</view><view class="tool-description">{{tool.description}}</view></view>
+        <view wx:if="{{tool.badge}}" class="future-badge">{{tool.badge}}</view><view wx:else class="arrow">›</view>
+      </view>
+    </view>
+  </view>
+</view>

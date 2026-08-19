@@ -1,0 +1,29 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/tools/index",
+    "pages/profile/index",
+    "pages/tools/image-watermark/index",
+    "pages/tools/video-watermark/index",
+    "pages/tasks/index",
+    "pages/task-detail/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "未然Lab",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f7f8fa"
+  },
+  "tabBar": {
+    "color": "#86909c",
+    "selectedColor": "#1677ff",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "white",
+    "list": [
+      { "pagePath": "pages/index/index", "text": "首页" },
+      { "pagePath": "pages/tools/index", "text": "工具" },
+      { "pagePath": "pages/profile/index", "text": "我的" }
+    ]
+  },
+  "style": "v2"
+}

@@ -1,0 +1,16 @@
+<view class="page">
+  <view class="tool-page-intro"><view class="title">图片去水印</view><view class="subtitle">上传已获授权的图片，框选需要处理的水印区域。</view></view>
+  <view class="card">
+    <view class="section-title">1. 选择图片</view>
+    <image wx:if="{{filePath}}" class="preview" src="{{filePath}}" mode="widthFix" />
+    <view wx:else class="empty-preview">支持 JPG、PNG、WebP</view>
+    <button class="secondary-button" bindtap="chooseImage">{{filePath ? '重新选择' : '选择图片'}}</button>
+  </view>
+  <view class="card">
+    <view class="section-title">2. 填写水印区域</view>
+    <view class="muted region-help">以图片左上角为原点，数值为比例（0～1）。例如右下角水印：x=0.72，y=0.86。</view>
+    <view class="region-grid"><label><text>x</text><input class="input" type="digit" data-field="x" value="{{region.x}}" bindinput="onRegionInput" /></label><label><text>y</text><input class="input" type="digit" data-field="y" value="{{region.y}}" bindinput="onRegionInput" /></label><label><text>宽</text><input class="input" type="digit" data-field="width" value="{{region.width}}" bindinput="onRegionInput" /></label><label><text>高</text><input class="input" type="digit" data-field="height" value="{{region.height}}" bindinput="onRegionInput" /></label></view>
+    <radio-group class="mode-group" bindchange="onModeChange"><label><radio value="inpaint" checked="{{mode === 'inpaint'}}" />智能修复</label><label><radio value="blur" checked="{{mode === 'blur'}}" />模糊覆盖</label></radio-group>
+    <button class="primary-button" loading="{{submitting}}" disabled="{{!filePath || submitting}}" bindtap="submit">开始处理</button>
+  </view>
+</view>
