@@ -1,5 +1,4 @@
-import { createReadStream } from "node:fs";
-import { mkdir } from "node:fs/promises";
+import { mkdir, stat } from "node:fs/promises";
 import { dirname } from "node:path";
 import OSS from "ali-oss";
 import { env } from "../../config/env.js";
@@ -18,7 +17,8 @@ export class StorageService {
     accessKeyId: env.OSS_ACCESS_KEY_ID,
     accessKeySecret: env.OSS_ACCESS_KEY_SECRET,
     endpoint: env.OSS_INTERNAL_ENDPOINT,
-    secure: true
+    secure: true,
+    timeout: env.OSS_REQUEST_TIMEOUT_MS
   });
 
   async ensureBucket(): Promise<void> {
@@ -62,7 +62,7 @@ export class StorageService {
   }
 
   async headObject(storageKey: string): Promise<{ byteSize: number; contentType: string | undefined }> {
-    const result = await this.client.head(storageKey) as unknown as ObjectHead;
+    const result = await this.client.head(storageKey, { timeout: env.OSS_REQUEST_TIMEOUT_MS }) as unknown as ObjectHead;
     const headers = result.res?.headers ?? {};
     const rawLength = headers["content-length"];
     const byteSize = Number(Array.isArray(rawLength) ? rawLength[0] : rawLength);
@@ -73,12 +73,26 @@ export class StorageService {
 
   async downloadToFile(storageKey: string, destination: string): Promise<void> {
     await mkdir(dirname(destination), { recursive: true });
-    await this.client.get(storageKey, destination);
+    await this.client.get(storageKey, destination, { timeout: env.OSS_REQUEST_TIMEOUT_MS });
   }
 
   async uploadFile(storageKey: string, sourceFile: string, contentType: string): Promise<void> {
-    await this.client.put(storageKey, createReadStream(sourceFile), {
-      headers: { "Content-Type": contentType, "x-oss-forbid-overwrite": "true" }
+    const source = await stat(sourceFile);
+    const headers = { "x-oss-forbid-overwrite": "true" };
+    if (source.size >= env.OSS_MULTIPART_THRESHOLD_BYTES) {
+      await this.client.multipartUpload(storageKey, sourceFile, {
+        parallel: env.OSS_MULTIPART_PARALLEL,
+        partSize: env.OSS_MULTIPART_PART_SIZE_BYTES,
+        timeout: env.OSS_REQUEST_TIMEOUT_MS,
+        mime: contentType,
+        headers
+      });
+      return;
+    }
+    await this.client.put(storageKey, sourceFile, {
+      timeout: env.OSS_REQUEST_TIMEOUT_MS,
+      mime: contentType,
+      headers
     });
   }
 

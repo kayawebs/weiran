@@ -35,6 +35,10 @@ const envSchema = z.object({
   OSS_ACCESS_KEY_ID: z.string().min(1),
   OSS_ACCESS_KEY_SECRET: z.string().min(1),
   OSS_INTERNAL_ENDPOINT: optionalEnvString(z.string().url()),
+  OSS_REQUEST_TIMEOUT_MS: z.coerce.number().int().min(10_000).max(15 * 60 * 1_000).default(120_000),
+  OSS_MULTIPART_THRESHOLD_BYTES: z.coerce.number().int().min(1024 * 1024).max(5 * 1024 * 1024 * 1024).default(8 * 1024 * 1024),
+  OSS_MULTIPART_PART_SIZE_BYTES: z.coerce.number().int().min(100 * 1024).max(100 * 1024 * 1024).default(1024 * 1024),
+  OSS_MULTIPART_PARALLEL: z.coerce.number().int().min(1).max(8).default(3),
   UPLOAD_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
   DOWNLOAD_URL_TTL_SECONDS: z.coerce.number().int().min(60).max(3600).default(900),
   MAX_UPLOAD_BYTES: z.coerce.number().int().positive().max(5 * 1024 * 1024 * 1024).default(524288000)

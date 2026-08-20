@@ -20,3 +20,4 @@
 - 在小程序后台把 `https://{bucket}.{region}.aliyuncs.com` 加入 `uploadFile`、`downloadFile` 合法域名。
 - 如使用 OSS 自定义域名，配置 HTTPS 证书和小程序合法域名；当前代码默认签发标准 OSS 公网域名。
 - 在 OSS 跨域规则中仅放行实际使用的 HTTPS 域名和所需方法，不使用 `*`。
+- 仅当 API/Worker 位于与 Bucket 相同地域的阿里云 ECS 时配置 `OSS_INTERNAL_ENDPOINT`；其他服务器必须留空并使用公网 Endpoint。Worker 会对大文件自动使用 OSS 分片上传。

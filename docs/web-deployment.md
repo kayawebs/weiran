@@ -69,6 +69,8 @@ Bucket 保持私有读写，并使用仅允许该 Bucket/前缀的 RAM 用户。
 
 生产 API/Worker 在同地域 ECS 时，配置 `OSS_INTERNAL_ENDPOINT` 可让服务端下载和上传走内网；浏览器获得的签名地址仍由 SDK 使用公网 Endpoint。
 
+海外模板默认将 `OSS_INTERNAL_ENDPOINT` 留空：非阿里云服务器、或与 Bucket 不同地域的 ECS 无法访问 OSS 内网 Endpoint，误填会导致 Worker 在上传阶段连接超时。Worker 对 8 MiB 以上文件使用分片上传，默认每片 1 MiB、并发 3、单请求超时 120 秒；可分别通过 `OSS_MULTIPART_THRESHOLD_BYTES`、`OSS_MULTIPART_PART_SIZE_BYTES`、`OSS_MULTIPART_PARALLEL` 和 `OSS_REQUEST_TIMEOUT_MS` 调整。
+
 ## 5. 启动全部容器
 
 国内服务器在项目根目录执行：
