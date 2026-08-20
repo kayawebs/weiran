@@ -63,7 +63,7 @@ export class TaskRepository {
     const result = await this.db.query<TaskRow>(`UPDATE tasks
       SET status = 'PROCESSING', attempt_count = attempt_count + 1, updated_at = now(),
           error_code = NULL, error_message = NULL
-      WHERE id = $1 AND status = 'PENDING'
+      WHERE id = $1 AND status IN ('PENDING', 'PROCESSING')
       RETURNING ${taskReturning}`, [taskId]);
     return result.rows[0] ? toTask(result.rows[0]) : null;
   }

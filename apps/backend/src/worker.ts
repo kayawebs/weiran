@@ -216,7 +216,10 @@ async function execute(task: TaskRecord): Promise<Record<string, unknown>> {
 
 async function processTask(job: Job<{ taskId: string }>): Promise<void> {
   const task = await tasks.markProcessing(job.data.taskId);
-  if (!task) return; // duplicate queue delivery or a terminal task
+  // BullMQ can redeliver a job whose previous Worker died while the database
+  // still says PROCESSING. The queue lock prevents concurrent execution, so a
+  // redelivery may safely resume; only terminal or missing tasks are skipped.
+  if (!task) return;
   await tasks.addEvent(task.id, "PROCESSING", "Worker started processing", { attempt: task.attemptCount });
   try {
     const output = await execute(task);
