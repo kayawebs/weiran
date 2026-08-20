@@ -1,14 +1,27 @@
 import { type FormEvent, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { api, ApiError } from "../api";
+import { api, apiMediaUrl, ApiError } from "../api";
 import { PageIntro } from "../components/PageIntro";
 import { copy } from "../i18n/copy";
+import type { ResolvedSource } from "../types";
+
+function durationLabel(duration: number | null): string | null {
+  if (duration == null) return null;
+  const seconds = Math.round(duration);
+  const minutes = Math.floor(seconds / 60);
+  return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
+}
+
+function qualityLabel(quality: string, height: number | null): string {
+  if (height) return `${height}P`;
+  return quality === "source" ? copy.video.original : quality.toUpperCase();
+}
 
 export function VideoSourcePage() {
   const [url, setUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
-  const navigate = useNavigate();
+  const [result, setResult] = useState<ResolvedSource | null>(null);
+  const [previewId, setPreviewId] = useState<string | null>(null);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -19,8 +32,9 @@ export function VideoSourcePage() {
     }
     setSubmitting(true);
     try {
-      const task = await api.createVideoTask(url.trim());
-      navigate(`/tasks/${task.id}`);
+      const resolved = await api.resolveVideoSources(url.trim());
+      setResult(resolved);
+      setPreviewId(null);
     } catch (cause) {
       setError(cause instanceof ApiError ? cause.message : copy.video.startError);
     } finally {
@@ -48,6 +62,35 @@ export function VideoSourcePage() {
           <p className="fine-print">{copy.video.legal}</p>
         </aside>
       </section>
+      {result && <section className="source-results" aria-live="polite">
+        <header className="source-results-header">
+          <div><p className="section-label">{copy.video.found(result.videoCount)}</p><h2>{result.title || copy.video.resultsTitle}</h2></div>
+          <span>{copy.video.expires(Math.round(result.expiresInSeconds / 60))}</span>
+        </header>
+        <div className="source-result-list">{result.videos.map((video, index) => {
+          const previewUrl = apiMediaUrl(video.previewPath);
+          const coverUrl = video.coverUrl ? apiMediaUrl(video.coverUrl) : null;
+          const duration = durationLabel(video.duration);
+          return <article className="source-result-card" key={video.id}>
+            <div className="source-cover">{coverUrl ? <img src={coverUrl} alt="" loading="lazy" /> : <span>D</span>}</div>
+            <div className="source-result-copy">
+              <p>{copy.video.videoNumber(index + 1)}</p>
+              <h3>{video.title}</h3>
+              <div className="source-tags">
+                <span>{qualityLabel(video.quality, video.height)}</span>
+                <span className="clean-tag">{copy.video.noWatermark}</span>
+                {video.width && video.height && <span>{video.width}×{video.height}</span>}
+                {duration && <span>{duration}</span>}
+              </div>
+            </div>
+            <div className="source-result-actions">
+              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download>{copy.video.download}<span>↓</span></a>
+              <button className="secondary-action" type="button" onClick={() => setPreviewId(previewId === video.id ? null : video.id)}>{previewId === video.id ? copy.video.hidePreview : copy.video.preview}<span>▶</span></button>
+            </div>
+            {previewId === video.id && <div className="source-preview"><video src={previewUrl} poster={coverUrl ?? undefined} controls playsInline preload="metadata" /></div>}
+          </article>;
+        })}</div>
+      </section>}
     </>
   );
 }

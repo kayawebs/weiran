@@ -11,7 +11,7 @@
 - 统一异步任务模型：`SOURCE_DOWNLOAD`、`IMAGE_WATERMARK_REMOVE`、`VIDEO_WATERMARK_REMOVE`
 - Docker PostgreSQL 任务/资产/事件审计模型，Docker Redis + BullMQ 重试队列，阿里云 OSS 私有存储
 - 图片水印区域：OpenCV inpaint 或模糊处理；视频按来源平台选择解析策略
-- Dola 平台：粘贴公开 Thread URL，自动发现全部视频并解析官方原画 H.264 流，不重编码
+- Dola 平台：粘贴公开 Thread URL，同步发现全部视频并返回短期加密预览/下载链接；扫描阶段不下载、不写 OSS、不重编码
 - 受控的 HTTPS 素材解析与下载（来源/媒体主机白名单、私有网络阻断、重定向与体积限制）
 - 可插拔 `SourceExtractor` 与平台定义，后续可继续增加内容平台 connector
 - 原生微信小程序：首页、工具分类、平台选择、URL 提交、多视频结果预览与保存
@@ -53,7 +53,7 @@ Vite 开发服务器默认在 `http://localhost:5173`，并已将 `/api` 代理�
 
 ## API 快速示例
 
-小程序启动时通过 `wx.login` 获取 code 并调用 `POST /v1/auth/wechat`，得到 JWT。图片任务先通过 OSS 上传接口取得 `assetId`；视频平台任务直接提交平台与公开 URL。
+小程序启动时通过 `wx.login` 获取 code 并调用 `POST /v1/auth/wechat`，得到 JWT。图片任务先通过 OSS 上传接口取得 `assetId`；Dola 原画发现属于同步查询，不创建异步 Task。
 
 图片去水印：
 
@@ -72,17 +72,14 @@ POST /v1/tasks
 Dola 视频原画解析：
 
 ```json
-POST /v1/tasks
+POST /v1/sources/resolve
 {
-  "taskType": "VIDEO_WATERMARK_REMOVE",
-  "input": {
-    "platform": "dola",
-    "url": "https://www.dola.com/thread/xL02pFHSUcQEQa3ME"
-  }
+  "platform": "dola",
+  "url": "https://www.dola.com/thread/xL02pFHSUcQEQa3ME"
 }
 ```
 
-接口返回 `202` 和任务 ID；轮询 `GET /v1/tasks/:taskId`。状态为 `SUCCESS` 后调用 `GET /v1/tasks/:taskId/result-url`。响应中的 `files[]` 为每个结果文件提供独立的 OSS 短期下载链接；兼容字段 `downloadUrl` 指向第一个结果。
+接口直接返回 `videoCount` 与 `videos[]`。每个视频包含短期 `previewPath` 和 `downloadPath`；地址使用不可篡改的加密票据，不向浏览器暴露源 CDN URL 或请求头。用户点击后由 `GET /v1/source-media/:ticket` 按需流式转发。图片去水印等耗时、需要持久化结果的操作仍返回 `202` Task，并在成功后通过 OSS 短期链接交付。
 
 开发环境会默认创建本地测试用户。部署生产前，必须关闭 `ALLOW_INSECURE_DEV_AUTH` 并配置 JWT；国内部署还需要微信凭证与小程序合法域名。两地都要将 API CORS、OSS 跨域规则配置为各自的实际 HTTPS 域名。
 
@@ -92,7 +89,7 @@ POST /v1/tasks
 
 - `/`：未然Lab 区域语言品牌首页与平台工作流
 - `/tools`：素材清理、素材获取、创作辅助分类
-- `/tools/video`：选择 Dola 并提交公开 Thread URL
+- `/tools/video`：选择 Dola、扫描公开 Thread，并在同页预览或下载全部源视频
 - `/tools/image`：上传图片并用鼠标或触控拖拽水印区域
 - `/tasks/:id`：轮询任务、预览并下载全部结果
 - `/history`：当前浏览器匿名身份下的最近任务

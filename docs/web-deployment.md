@@ -8,9 +8,12 @@
 https://tools.example.com/       -> Web
 https://tools.example.com/api/*  -> Backend API
 Web browser -> Alibaba OSS       -> Direct upload / temporary download
+Web browser -> Backend API       -> On-demand source media stream
 ```
 
 Web、API、Worker、PostgreSQL 和 Redis 由 Docker Compose 运行。阿里云 OSS 继续作为私有对象存储。宿主机的 Nginx 或 Caddy 只负责公网 HTTPS，并将流量转发到 `127.0.0.1:8080`。
+
+容器内 Nginx 已关闭 `/api/*` 响应缓冲并放宽流式传输超时，因此 Dola 预览/下载会边读取源站边返回客户端，不需要等完整视频落盘。若宿主机还套一层 Nginx，也应对该反向代理关闭 `proxy_buffering`，并保留 `Range` 请求头。
 
 ## 1. 域名与安全组
 
@@ -145,7 +148,7 @@ https://tools.example.com/api
 
 - request 合法域名：`https://tools.example.com`
 - uploadFile 合法域名：OSS 公网域名或绑定的 OSS 自定义域名
-- downloadFile 合法域名：OSS 公网域名或绑定的 OSS 自定义域名
+- downloadFile 合法域名：`https://tools.example.com`，以及 OSS 公网域名或绑定的 OSS 自定义域名
 
 ## 8. 更新与回滚前准备
 

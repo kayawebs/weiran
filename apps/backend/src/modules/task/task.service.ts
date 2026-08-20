@@ -5,6 +5,7 @@ import { enqueueTask } from "./task.queue.js";
 import { TaskRepository } from "./task.repository.js";
 import type { CreateTaskRequest, TaskRecord } from "./task.types.js";
 import { ensureUser } from "../../shared/users.js";
+import { publicErrorCode } from "../../shared/public-errors.js";
 
 export class TaskValidationError extends Error {}
 
@@ -37,8 +38,10 @@ export class TaskService {
       await enqueueTask(task.id);
     } catch (error) {
       // The row deliberately remains PENDING so a reconciliation job can enqueue it later.
+      const code = publicErrorCode(error);
+      console.error("Task queue submission failed", { taskId: task.id, code, error });
       await new TaskRepository(pool).addEvent(task.id, "PENDING", "Queue submission delayed", {
-        reason: error instanceof Error ? error.message : "unknown"
+        code
       });
       throw error;
     }

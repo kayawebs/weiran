@@ -40,4 +40,25 @@ export type ResultResponse = {
   files: ResultFile[];
 };
 
+export type ResolvedSourceVideo = {
+  id: string;
+  title: string;
+  coverUrl: string | null;
+  duration: number | null;
+  quality: string;
+  width: number | null;
+  height: number | null;
+  mimeType: string;
+  previewPath: string;
+  downloadPath: string;
+};
+
+export type ResolvedSource = {
+  platform: string;
+  title: string | null;
+  videoCount: number;
+  expiresInSeconds: number;
+  videos: ResolvedSourceVideo[];
+};
+
 export type WatermarkRegion = { x: number; y: number; width: number; height: number };

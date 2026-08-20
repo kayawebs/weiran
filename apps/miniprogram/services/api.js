@@ -1,3 +1,20 @@
+const publicErrorMessages = {
+  RATE_LIMITED: "请求过于频繁，请稍后重试",
+  UNAUTHENTICATED: "登录状态已失效，请重新操作",
+  VALIDATION_ERROR: "提交的信息格式不正确",
+  INVALID_DOLA_URL: "请输入公开的 Dola Thread 链接",
+  DOLA_NO_VIDEO: "该公开 Thread 中没有找到可下载视频",
+  DOLA_CLEAN_SOURCE_UNAVAILABLE: "原始无水印视频暂时不可用",
+  DOLA_EXTRACTION_FAILED: "暂时无法解析该 Dola Thread",
+  SOURCE_RESOLVE_FAILED: "暂时无法解析该素材页面",
+  SOURCE_DELIVERY_FAILED: "源视频暂时无法下载",
+  SOURCE_TICKET_INVALID: "下载链接已失效，请重新解析"
+};
+
+function publicErrorMessage(code) {
+  return publicErrorMessages[code] || "请求暂时无法完成，请稍后重试";
+}
+
 function rawRequest(path, method, data, token) {
   const app = getApp();
   return new Promise((resolve, reject) => {
@@ -12,14 +29,22 @@ function rawRequest(path, method, data, token) {
       success(response) {
         if (response.statusCode >= 200 && response.statusCode < 300) resolve(response.data);
         else {
-          const error = new Error(response.data && response.data.message ? response.data.message : "请求失败");
+          const code = response.data && response.data.code;
+          const error = new Error(publicErrorMessage(code));
           error.statusCode = response.statusCode;
+          error.code = code;
           reject(error);
         }
       },
       fail: reject
     });
   });
+}
+
+function mediaUrl(path) {
+  if (/^https?:\/\//i.test(path)) return path;
+  const app = getApp();
+  return `${app.globalData.apiBaseUrl}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 function request(path, method, data, options = {}) {
@@ -64,10 +89,12 @@ function mimeTypeForFilename(filename, fallback) {
 module.exports = {
   getCapabilities: () => request("/v1/capabilities", "GET", undefined, { auth: false }),
   exchangeWechatCode: (code) => request("/v1/auth/wechat", "POST", { code }, { auth: false }),
+  resolveSources: (platform, url) => request("/v1/sources/resolve", "POST", { platform, url }),
   createTask: (payload) => request("/v1/tasks", "POST", payload),
   listTasks: (limit = 50) => request(`/v1/tasks?limit=${limit}`, "GET"),
   getTask: (taskId) => request(`/v1/tasks/${taskId}`, "GET"),
   getResultUrl: (taskId) => request(`/v1/tasks/${taskId}/result-url`, "GET"),
   uploadAsset,
-  mimeTypeForFilename
+  mimeTypeForFilename,
+  mediaUrl
 };

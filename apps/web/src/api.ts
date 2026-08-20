@@ -1,4 +1,4 @@
-import type { ResultResponse, Task, WatermarkRegion } from "./types";
+import type { ResolvedSource, ResultResponse, Task, WatermarkRegion } from "./types";
 import { copy } from "./i18n/copy";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "/api";
@@ -14,6 +14,11 @@ async function parseResponse<T>(response: Response): Promise<T> {
   const payload = await response.json().catch(() => ({})) as { message?: string; code?: string };
   if (!response.ok) throw new ApiError(copy.api.error(payload.code, payload.message), response.status, payload.code);
   return payload as T;
+}
+
+export function apiMediaUrl(path: string): string {
+  if (/^https?:\/\//i.test(path)) return path;
+  return `${API_BASE_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 async function createGuestSession(): Promise<string> {
@@ -63,9 +68,9 @@ async function uploadImage(file: File): Promise<string> {
 }
 
 export const api = {
-  createVideoTask: (url: string) => request<Task>("/v1/tasks", {
+  resolveVideoSources: (url: string) => request<ResolvedSource>("/v1/sources/resolve", {
     method: "POST",
-    body: JSON.stringify({ taskType: "VIDEO_WATERMARK_REMOVE", input: { platform: "dola", url } })
+    body: JSON.stringify({ platform: "dola", url })
   }),
   createImageTask: async (file: File, region: WatermarkRegion, mode: "inpaint" | "blur") => {
     const sourceAssetId = await uploadImage(file);

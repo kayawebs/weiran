@@ -40,7 +40,7 @@ export function TaskPage() {
       <div className={`status-orb ${status.toLowerCase()}`}><span>{status === "SUCCESS" ? "✓" : status === "FAILED" ? "!" : ""}</span></div>
       <p className="eyebrow">{copy.task.task} {taskId.slice(0, 8).toUpperCase()}</p>
       <h1>{copy.task.labels[status]}</h1>
-      <p className="task-status-copy">{status === "PENDING" ? copy.task.pending : status === "PROCESSING" ? copy.task.processing : status === "SUCCESS" ? copy.task.ready(results.length) : copy.task.failure(task?.error?.message ?? error)}</p>
+      <p className="task-status-copy">{status === "PENDING" ? copy.task.pending : status === "PROCESSING" ? copy.task.processing : status === "SUCCESS" ? copy.task.ready(results.length) : copy.task.failure(task?.error?.code)}</p>
       {(status === "PENDING" || status === "PROCESSING") && <div className="progress-track"><span /></div>}
       {error && !task && <p className="form-error">{error}</p>}
       {status === "SUCCESS" && <div className="result-grid">{results.map((file, index) => (

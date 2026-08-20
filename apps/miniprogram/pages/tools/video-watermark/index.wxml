@@ -27,7 +27,31 @@
       <view><text>✓</text> 自动匹配平台处理策略</view>
       <view><text>✓</text> 处理完成后提供独立下载项</view>
     </view>
-    <button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">解析并处理</button>
+    <button class="primary-button" loading="{{submitting}}" disabled="{{submitting}}" bindtap="submit">查找无水印源视频</button>
     <view class="rights-notice">提交即表示您确认拥有该素材，或已获得下载和处理授权。</view>
+  </view>
+
+  <view wx:if="{{results.length}}" class="results-section">
+    <view class="results-topbar">
+      <view><view class="found-count">● 找到 {{resultCount}} 个视频</view><view class="section-title">无水印源视频</view></view>
+      <view class="expires-text">{{expiresText}}</view>
+    </view>
+    <view wx:for="{{results}}" wx:key="id" class="card source-result-card">
+      <view class="result-summary">
+        <image wx:if="{{item.coverUrl}}" class="source-cover" src="{{item.coverUrl}}" mode="aspectFill" />
+        <view wx:else class="source-cover source-cover-fallback">D</view>
+        <view class="result-copy">
+          <view class="result-title">{{item.title}}</view>
+          <view class="result-tags">
+            <text>{{item.qualityText}}</text><text class="clean-tag">无水印</text><text wx:if="{{item.sizeText}}">{{item.sizeText}}</text><text wx:if="{{item.durationText}}">{{item.durationText}}</text>
+          </view>
+        </view>
+      </view>
+      <video wx:if="{{previewingIndex === index}}" class="source-preview" src="{{item.previewUrl}}" poster="{{item.coverUrl}}" controls />
+      <view class="result-actions">
+        <button class="primary-button" data-index="{{index}}" loading="{{downloadingIndex === index}}" disabled="{{downloadingIndex >= 0}}" bindtap="saveResult">下载并保存</button>
+        <button class="secondary-button" data-index="{{index}}" bindtap="togglePreview">{{previewingIndex === index ? '关闭预览' : '预览'}}</button>
+      </view>
+    </view>
   </view>
 </view>

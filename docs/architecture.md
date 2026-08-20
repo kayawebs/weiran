@@ -127,6 +127,8 @@ erDiagram
 | `POST` | `/v1/auth/wechat` | 以 `wx.login` 的 code 换取 JWT |
 | `POST` | `/v1/assets/upload-url` | 创建资产记录并返回阿里云 OSS 受限表单上传签名 |
 | `POST` | `/v1/assets/:assetId/complete` | 服务端确认对象已上传，资产变为可处理状态 |
+| `POST` | `/v1/sources/resolve` | 同步解析公开来源，返回媒体清单与短期加密票据 |
+| `GET` | `/v1/source-media/:ticket` | 按需代理预览/下载源媒体，不在扫描阶段写入 OSS |
 | `POST` | `/v1/tasks` | 创建并投递统一任务 |
 | `GET` | `/v1/tasks?limit=20` | 查询当前用户的任务历史，用于“我的”与文件记录 |
 | `GET` | `/v1/tasks/:taskId` | 查询任务、输入输出与错误 |
@@ -146,19 +148,16 @@ erDiagram
 
 坐标一律为相对比例 `0..1`，从左上角开始计算，因而在小程序预览和 Worker 原始分辨率之间保持一致。
 
-视频平台任务不接收客户端坐标：
+公开来源发现不创建异步任务：
 
 ```json
 {
-  "taskType": "VIDEO_WATERMARK_REMOVE",
-  "input": {
-    "platform": "dola",
-    "url": "https://www.dola.com/thread/xL02pFHSUcQEQa3ME"
-  }
+  "platform": "dola",
+  "url": "https://www.dola.com/thread/xL02pFHSUcQEQa3ME"
 }
 ```
 
-平台解析器负责发现全部媒体项并选择原画流。一个 Thread 可以产生多个结果资产；`GET /v1/tasks/:taskId/result-url` 通过 `files[]` 返回对应的短期下载 URL。
+平台解析器负责发现全部媒体项并选择原画流。一个 Thread 可同步返回多个结果；API 为每项签发短期加密票据，客户端点击后才通过同域流式端点传输。票据隐藏源 URL 和必要请求头，且过期后必须重新解析。需要上传、转码或持久化结果的媒体操作才进入 Task/Worker/OSS。
 
 ## Task 系统设计
 
@@ -175,7 +174,7 @@ stateDiagram-v2
 
 1. API 验证输入，创建 `tasks` 和首个 `task_events`。
 2. 事务提交后将任务 ID 写入 Docker Redis 队列；队列重复投递不会重复处理，因为 Worker 只允许 `PENDING → PROCESSING` 的原子迁移。
-3. Worker 对上传任务下载输入资产；对 URL 任务先调用平台 Extractor。Dola 会从公开 Thread 提取官方 VOD 回退信息，解析无动态水印的 H.264 原画流，再将每个视频写入 OSS 结果资产。
+3. Worker 只处理需要持久化或计算的任务。Dola 快速发现由 API 调用 Extractor，同步解析无动态水印的 H.264 原画流；扫描时不下载视频、不写 OSS。
 4. 每次状态变化均写事件。未知错误由 BullMQ 按退避策略重试；最终失败落库可供客户端展示。
 5. 客户端以轮询查询为基线；后续可增加 WebSocket、订阅消息或 webhook，而不改变 Task 模型。
 
@@ -187,6 +186,8 @@ stateDiagram-v2
 - 单个处理工作目录在任务结束后清理；对象存储路径采用 `uploads/{user}/{asset}` 与 `results/{user}/{task}`。
 - 每个处理器只接受经 Zod 校验的输入，不识别的任务类型立即失败。
 - Dola 解析器只接受公开 `dola.com/thread/...`、官方 VOD 元数据主机和 Dola 视频 CDN；拒绝跳转与非白名单地址。原画不可用时任务明确失败，不退回移动水印版本。
+- 源媒体票据采用服务端密钥加密并设置短有效期；代理端再次执行 HTTPS/公网地址校验，只转发白名单请求头与合法的单段 `Range`，支持视频拖动播放。
+- 内部 SDK、网络和对象存储异常只写服务端日志；任务与 API 对客户端仅返回稳定错误码和安全文案，历史 `error_message`/事件 metadata 不直接序列化到客户端。
 
 ## 微信小程序页面结构
 
@@ -196,7 +197,7 @@ apps/miniprogram/
     index/                 # 平台欢迎、常用工具和分类入口
     tools/                 # 所有工具与未来能力分类
       image-watermark/     # 选图、框选区域、提交任务
-      video-watermark/     # 选择平台、粘贴公开 URL、提交任务
+      video-watermark/     # 选择平台、扫描公开 URL、同页预览与下载
     profile/               # 历史任务、文件记录、设置入口
     tasks/                 # Task 系统驱动的任务与结果记录
     task-detail/           # 轮询状态、预览和保存单个或多个结果

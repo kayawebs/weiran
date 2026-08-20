@@ -6,7 +6,7 @@ import { Worker, type Job } from "bullmq";
 import { Redis } from "ioredis";
 import { env } from "./config/env.js";
 import { closeDatabase, pool } from "./db/client.js";
-import { DownloaderService, DownloadError } from "./modules/downloader/downloader.service.js";
+import { DownloaderService } from "./modules/downloader/downloader.service.js";
 import { DirectMediaExtractor } from "./modules/extractor/direct-media.extractor.js";
 import { DolaExtractor } from "./modules/extractor/dola.extractor.js";
 import { ExtractorRegistry, type MediaItem, type MediaSource, type MediaStream } from "./modules/extractor/source-extractor.js";
@@ -19,6 +19,7 @@ import { mediaTypeFromMime, type MediaAsset } from "./modules/storage/storage.ty
 import { MEDIA_QUEUE } from "./modules/task/task.constants.js";
 import { TaskRepository } from "./modules/task/task.repository.js";
 import { createTaskSchema, type CreateTaskRequest, type TaskRecord } from "./modules/task/task.types.js";
+import { publicErrorCode, publicErrorMessage } from "./shared/public-errors.js";
 
 const storage = new StorageService();
 const assets = new AssetRepository(pool);
@@ -226,9 +227,10 @@ async function processTask(job: Job<{ taskId: string }>): Promise<void> {
     await tasks.markSuccess(task.id, output);
     await tasks.addEvent(task.id, "SUCCESS", "Processing completed", output);
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Unknown processing error";
-    await tasks.markPendingRetry(task.id, message);
-    await tasks.addEvent(task.id, "PENDING", "Processing attempt failed; retry scheduled", { message });
+    const code = publicErrorCode(error);
+    console.error("Task processing attempt failed", { taskId: task.id, code, error });
+    await tasks.markPendingRetry(task.id, publicErrorMessage(code));
+    await tasks.addEvent(task.id, "PENDING", "Processing attempt failed; retry scheduled", { code });
     throw error;
   }
 }
@@ -238,15 +240,11 @@ const worker = new Worker<{ taskId: string }>(MEDIA_QUEUE, processTask, { connec
 
 worker.on("failed", async (job, error) => {
   if (!job || job.attemptsMade < env.TASK_MAX_ATTEMPTS) return;
-  const codedError = error as Error & { code?: unknown };
-  const code = error instanceof DownloadError
-    ? error.code
-    : typeof codedError.code === "string"
-      ? codedError.code
-      : "PROCESSING_FAILED";
-  const message = error instanceof Error ? error.message : "Unknown processing error";
+  const code = publicErrorCode(error);
+  const message = publicErrorMessage(code);
+  console.error("Task processing failed permanently", { taskId: job.data.taskId, code, error });
   await tasks.markFailed(job.data.taskId, code, message);
-  await tasks.addEvent(job.data.taskId, "FAILED", "Processing failed permanently", { code, message });
+  await tasks.addEvent(job.data.taskId, "FAILED", "Processing failed permanently", { code });
 });
 
 async function shutdown(signal: string): Promise<void> {

@@ -19,3 +19,19 @@
 .feature-list { margin-top: 24rpx; padding: 22rpx 24rpx; border-radius: 16rpx; background: #f8f9fb; color: #4e5969; font-size: 24rpx; line-height: 2; }
 .feature-list text { color: #00a870; font-weight: 700; margin-right: 10rpx; }
 .rights-notice { color: #a2a6ad; font-size: 21rpx; line-height: 1.6; text-align: center; margin-top: 16rpx; }
+.results-section { margin-top: 28rpx; }
+.results-topbar { display: flex; justify-content: space-between; align-items: center; gap: 20rpx; padding: 26rpx; border-radius: 20rpx 20rpx 0 0; background: linear-gradient(135deg, #f3f0ff, #eef8ff); border: 2rpx solid #ded7ff; }
+.found-count { color: #00a870; font-size: 23rpx; font-weight: 650; margin-bottom: 8rpx; }
+.expires-text { color: #86909c; font-size: 20rpx; text-align: right; }
+.source-result-card { margin-top: 18rpx; }
+.result-summary { display: flex; align-items: center; gap: 22rpx; }
+.source-cover { width: 210rpx; height: 118rpx; border-radius: 16rpx; flex: none; background: #15182b; }
+.source-cover-fallback { display: flex; align-items: center; justify-content: center; color: #fff; font-size: 46rpx; font-weight: 700; background: linear-gradient(145deg, #15182b, #765cff); }
+.result-copy { min-width: 0; flex: 1; }
+.result-title { font-size: 28rpx; font-weight: 650; line-height: 1.4; }
+.result-tags { display: flex; flex-wrap: wrap; gap: 10rpx; margin-top: 14rpx; }
+.result-tags text { padding: 5rpx 10rpx; border-radius: 8rpx; color: #4e5969; background: #f2f3f5; font-size: 20rpx; }
+.result-tags .clean-tag { color: #00875a; background: #e8fff5; }
+.source-preview { width: 100%; margin-top: 24rpx; border-radius: 16rpx; overflow: hidden; }
+.result-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 16rpx; margin-top: 24rpx; }
+.result-actions button { margin: 0; }

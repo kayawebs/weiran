@@ -20,7 +20,7 @@ function isPrivateAddress(address: string): boolean {
     (first === 192 && second === 168);
 }
 
-async function assertPublicHttpsUrl(rawUrl: string): Promise<URL> {
+export async function assertPublicHttpsUrl(rawUrl: string): Promise<URL> {
   const url = new URL(rawUrl);
   if (url.protocol !== "https:") throw new DownloadError("Only HTTPS source URLs are allowed", "UNSAFE_SOURCE_URL");
   const addresses = await lookup(url.hostname, { all: true });
@@ -30,13 +30,17 @@ async function assertPublicHttpsUrl(rawUrl: string): Promise<URL> {
   return url;
 }
 
+export function safeSourceRequestHeaders(requestHeaders: Record<string, string> = {}): Record<string, string> {
+  const allowedHeaders = new Set(["accept", "origin", "referer", "user-agent"]);
+  return Object.fromEntries(Object.entries(requestHeaders).filter(([name]) => allowedHeaders.has(name.toLowerCase())));
+}
+
 export type DownloadedFile = { byteSize: number; mimeType: string };
 
 export class DownloaderService {
   async downloadToFile(rawUrl: string, destination: string, requestHeaders: Record<string, string> = {}): Promise<DownloadedFile> {
     const url = await assertPublicHttpsUrl(rawUrl);
-    const allowedHeaders = new Set(["accept", "origin", "referer", "user-agent"]);
-    const headers = Object.fromEntries(Object.entries(requestHeaders).filter(([name]) => allowedHeaders.has(name.toLowerCase())));
+    const headers = safeSourceRequestHeaders(requestHeaders);
     const response = await fetch(url, { redirect: "error", headers, signal: AbortSignal.timeout(120_000) });
     if (!response.ok) throw new DownloadError(`Source returned HTTP ${response.status}`, "SOURCE_DOWNLOAD_FAILED");
     const declaredLength = Number(response.headers.get("content-length") ?? 0);

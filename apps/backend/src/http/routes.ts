@@ -1,17 +1,22 @@
 import { randomUUID } from "node:crypto";
+import { Readable } from "node:stream";
 import { z } from "zod";
 import type { FastifyInstance } from "fastify";
 import { env } from "../config/env.js";
 import { pool } from "../db/client.js";
 import { requireAuthentication } from "./auth.js";
 import { AuthService, AuthenticationError } from "../modules/auth/auth.service.js";
+import { assertPublicHttpsUrl, safeSourceRequestHeaders } from "../modules/downloader/downloader.service.js";
 import { listVideoPlatforms } from "../modules/platform/video-platforms.js";
+import { SourceResolutionService } from "../modules/source/source-resolution.service.js";
+import { SourceTicketService } from "../modules/source/source-ticket.service.js";
 import { AssetRepository } from "../modules/storage/asset.repository.js";
 import { StorageService } from "../modules/storage/storage.service.js";
 import { mediaTypeFromMime } from "../modules/storage/storage.types.js";
 import { TaskRepository } from "../modules/task/task.repository.js";
 import { TaskService, TaskValidationError } from "../modules/task/task.service.js";
 import { createTaskSchema, type TaskRecord } from "../modules/task/task.types.js";
+import { publicErrorCode, publicErrorMessage } from "../shared/public-errors.js";
 import { ensureUser } from "../shared/users.js";
 
 const uploadSchema = z.object({
@@ -23,17 +28,40 @@ const idParams = z.object({ taskId: z.string().uuid() });
 const assetParams = z.object({ assetId: z.string().uuid() });
 const wechatLoginSchema = z.object({ code: z.string().min(1).max(512) });
 const taskListQuery = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
+const sourceResolveSchema = z.object({
+  platform: z.literal("dola"),
+  url: z.string().url().refine((value) => {
+    const url = new URL(value);
+    return url.protocol === "https:"
+      && (url.hostname === "dola.com" || url.hostname === "www.dola.com")
+      && /^\/thread\/[A-Za-z0-9_-]+\/?$/.test(url.pathname);
+  }, "Enter a public Dola thread URL")
+});
+const sourceMediaParams = z.object({ ticket: z.string().min(100).max(4096) });
+const sourceMediaQuery = z.object({ download: z.literal("1").optional() });
 const extensionByMime: Record<string, string> = {
   "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic",
   "video/mp4": ".mp4", "video/quicktime": ".mov", "video/webm": ".webm"
 };
+const sourceErrorStatus: Record<string, number> = {
+  DOLA_NO_VIDEO: 404,
+  INVALID_DOLA_URL: 422,
+  DOLA_CLEAN_SOURCE_UNAVAILABLE: 422,
+  UNSUPPORTED_SOURCE: 422
+};
 
 function presentTask(task: TaskRecord, events?: Awaited<ReturnType<TaskRepository["listEvents"]>>) {
+  const safeErrorCode = task.errorCode ? publicErrorCode({ code: task.errorCode }) : null;
   return {
     id: task.id, taskType: task.taskType, status: task.status, input: task.input, output: task.output,
-    error: task.errorCode ? { code: task.errorCode, message: task.errorMessage } : null,
+    error: safeErrorCode ? { code: safeErrorCode, message: publicErrorMessage(safeErrorCode) } : null,
     attemptCount: task.attemptCount, createdAt: task.createdAt.toISOString(), updatedAt: task.updatedAt.toISOString(),
-    events: events?.map((event) => ({ ...event, createdAt: event.createdAt.toISOString() }))
+    events: events?.map((event) => ({
+      id: event.id,
+      status: event.status,
+      message: event.message,
+      createdAt: event.createdAt.toISOString()
+    }))
   };
 }
 
@@ -76,6 +104,8 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   const tasks = new TaskRepository(pool);
   const taskService = new TaskService();
   const authService = new AuthService();
+  const sourceResolution = new SourceResolutionService();
+  const sourceTickets = new SourceTicketService();
 
   app.get("/health", async () => {
     await pool.query("SELECT 1");
@@ -108,6 +138,56 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const session = await authService.createGuestSession();
     reply.code(201);
     return { accessToken: session.accessToken, expiresInSeconds: session.expiresInSeconds };
+  });
+
+  app.post("/v1/sources/resolve", {
+    preHandler: requireAuthentication,
+    config: { rateLimit: { max: 30, timeWindow: "1 hour" } }
+  }, async (request) => {
+    const body = sourceResolveSchema.parse(request.body);
+    return sourceResolution.resolve(body.platform, body.url);
+  });
+
+  app.get("/v1/source-media/:ticket", {
+    config: { rateLimit: { max: 300, timeWindow: "1 hour" } }
+  }, async (request, reply) => {
+    const { ticket } = sourceMediaParams.parse(request.params);
+    const { download } = sourceMediaQuery.parse(request.query);
+    const payload = await sourceTickets.read(ticket);
+    const sourceUrl = await assertPublicHttpsUrl(payload.sourceUrl);
+    const headers = safeSourceRequestHeaders(payload.requestHeaders);
+    const range = typeof request.headers.range === "string" ? request.headers.range : undefined;
+    if (range && !/^bytes=(?:\d+-\d*|-\d+)$/.test(range)) {
+      return reply.code(416).send({ code: "INVALID_RANGE", message: "Only a single byte range is supported" });
+    }
+    if (range) headers.Range = range;
+    headers["Accept-Encoding"] = "identity";
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 30_000);
+    let response: Response;
+    try {
+      response = await fetch(sourceUrl, { redirect: "error", headers, signal: controller.signal });
+    } catch (error) {
+      app.log.error({ err: error, sourceHost: sourceUrl.hostname }, "Source media connection failed");
+      throw Object.assign(new Error("Source media is temporarily unavailable"), { code: "SOURCE_DELIVERY_FAILED", statusCode: 502 });
+    } finally {
+      clearTimeout(timeout);
+    }
+    if ((response.status !== 200 && response.status !== 206) || !response.body) {
+      void response.body?.cancel();
+      throw Object.assign(new Error("Source media returned an unusable response"), { code: "SOURCE_DELIVERY_FAILED", statusCode: 502 });
+    }
+
+    reply.code(response.status);
+    for (const name of ["content-length", "content-range", "accept-ranges", "etag", "last-modified"] as const) {
+      const value = response.headers.get(name);
+      if (value) reply.header(name, value);
+    }
+    reply.header("content-type", response.headers.get("content-type") ?? payload.mimeType);
+    reply.header("cache-control", "private, max-age=60");
+    reply.header("content-disposition", `${download ? "attachment" : "inline"}; filename="${payload.filename.replace(/[^A-Za-z0-9._-]/g, "_")}"`);
+    return reply.send(Readable.fromWeb(response.body as never));
   });
 
   app.post("/v1/assets/upload-url", { preHandler: requireAuthentication }, async (request, reply) => {
@@ -192,12 +272,12 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.setErrorHandler((error, _request, reply) => {
     if (error instanceof z.ZodError) return reply.code(400).send({ code: "VALIDATION_ERROR", message: "Invalid request", details: error.flatten() });
-    if (error instanceof AuthenticationError) return reply.code(401).send({ code: error.code, message: error.message });
+    if (error instanceof AuthenticationError) return reply.code(401).send({ code: error.code, message: publicErrorMessage(error.code) });
     if (error instanceof TaskValidationError) return reply.code(422).send({ code: "INVALID_TASK_INPUT", message: error.message });
-    const statusCode = typeof (error as { statusCode?: unknown }).statusCode === "number" ? (error as { statusCode: number }).statusCode : 500;
-    const code = typeof (error as { code?: unknown }).code === "string" ? (error as { code: string }).code : "INTERNAL_ERROR";
+    const code = publicErrorCode(error, "PROCESSING_FAILED");
+    const declaredStatus = typeof (error as { statusCode?: unknown }).statusCode === "number" ? (error as { statusCode: number }).statusCode : undefined;
+    const statusCode = declaredStatus ?? sourceErrorStatus[code] ?? 500;
     app.log.error(error);
-    const message = error instanceof Error ? error.message : "Request failed";
-    return reply.code(statusCode).send({ code, message: statusCode >= 500 ? "Internal server error" : message });
+    return reply.code(statusCode).send({ code, message: publicErrorMessage(code) });
   });
 }

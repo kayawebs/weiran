@@ -31,12 +31,14 @@ const en = {
   video: {
     eyebrow: "VIDEO · DOLA", title: "Get the clean source.", description: "Paste a public Dola thread URL. We resolve every available original video and turn it into a secure download.", supported: "DOLA SUPPORTED",
     platformTitle: "Choose a platform", platformHint: "More source platforms will plug into the same workflow.", publicLinks: "Public thread links", selected: "Selected",
-    urlTitle: "Paste the thread URL", urlHint: "One thread can contain multiple videos.", fieldLabel: "Public Dola URL", invalid: "Paste a valid public Dola thread URL.", startError: "We could not start this task.", starting: "Starting task…", submit: "Find source videos",
+    urlTitle: "Paste the thread URL", urlHint: "One thread can contain multiple videos.", fieldLabel: "Public Dola URL", invalid: "Paste a valid public Dola thread URL.", startError: "We could not scan this thread right now.", starting: "Scanning thread…", submit: "Find source videos",
     how: "HOW IT WORKS", steps: [
       { title: "Resolve the thread", description: "Identify every video attached to the public post." },
-      { title: "Fetch the source", description: "Download the clean source to private object storage." },
-      { title: "Deliver securely", description: "Create temporary links for your results." }
-    ], legal: "Only submit material you own or have permission to download and reuse."
+      { title: "Show results", description: "List the clean source files without waiting for an upload." },
+      { title: "Stream on demand", description: "Preview or download through a temporary encrypted link." }
+    ], legal: "Only submit material you own or have permission to download and reuse.",
+    found: (count: number) => `${count} VIDEO${count === 1 ? "" : "S"} FOUND`, resultsTitle: "Clean source videos", expires: (minutes: number) => `Links refresh after ${minutes} minutes`,
+    videoNumber: (index: number) => `VIDEO ${String(index).padStart(2, "0")}`, original: "ORIGINAL", noWatermark: "No watermark", download: "Download", preview: "Preview", hidePreview: "Close preview"
   },
   image: {
     eyebrow: "IMAGE · CLEANUP", title: "Remove what gets in the way.", description: "Upload an authorized image and draw directly over the watermark. We restore the selected area while preserving the rest.", limit: "REGION PER TASK",
@@ -45,7 +47,7 @@ const en = {
     selectError: "Draw a box over the watermark before continuing.", startError: "We could not start this task.", uploading: "Uploading…", submit: "Remove watermark", privacy: "Your file uploads directly to private object storage. The download link expires automatically."
   },
   task: {
-    labels: { PENDING: "Queued", PROCESSING: "Processing", SUCCESS: "Ready", FAILED: "Failed" }, task: "TASK", pending: "Your task is waiting for an available worker.", processing: "We are preparing your media. You can leave this page and return from History.", ready: (count: number) => count > 0 ? `${count} result${count === 1 ? " is" : "s are"} ready to download.` : "Your results are ready to download.", failed: "The task could not be completed.", failure: (message: string | undefined) => message || "The task could not be completed.", loadError: "Could not load this task.", result: "RESULT", file: "FILE", mediaFile: (index: number) => `Media file ${index}`, resultAlt: (index: number) => `Result ${index}`, download: "Download", another: "Start another task", history: "View history"
+    labels: { PENDING: "Queued", PROCESSING: "Processing", SUCCESS: "Ready", FAILED: "Failed" }, task: "TASK", pending: "Your task is waiting for an available worker.", processing: "We are preparing your media. You can leave this page and return from History.", ready: (count: number) => count > 0 ? `${count} result${count === 1 ? " is" : "s are"} ready to download.` : "Your results are ready to download.", failed: "The task could not be completed.", failure: (_code: string | undefined) => "The task could not be completed. Please try again later.", loadError: "Could not load this task.", result: "RESULT", file: "FILE", mediaFile: (index: number) => `Media file ${index}`, resultAlt: (index: number) => `Result ${index}`, download: "Download", another: "Start another task", history: "View history"
   },
   history: {
     eyebrow: "YOUR WORKSPACE", title: "Task history.", description: "Recent jobs from this browser session. Open any task to check its status or refresh its download links.", recent: "RECENT TASKS", loading: "Loading your recent work…", loadError: "Could not load history.", emptyTitle: "No tasks yet.", emptyDescription: "Your completed and in-progress tools will appear here.", explore: "Explore tools", creatorTask: "Creator task",
@@ -53,7 +55,7 @@ const en = {
     statuses: { PENDING: "PENDING", PROCESSING: "PROCESSING", SUCCESS: "SUCCESS", FAILED: "FAILED" }
   },
   notFound: { eyebrow: "404 · OFF THE WORKBENCH", title: "Nothing here.", description: "The page may have moved, but the tools are still ready.", back: "Back home" },
-  api: { requestFailed: "The request could not be completed.", uploadFailed: "The image could not be uploaded.", error: (_code: string | undefined, message: string | undefined) => message || "The request could not be completed." },
+  api: { requestFailed: "The request could not be completed.", uploadFailed: "The image could not be uploaded.", error: (code: string | undefined, _message: string | undefined) => ({ RATE_LIMITED: "Too many requests. Please try again shortly.", UNAUTHENTICATED: "Your session expired. Please try again.", VALIDATION_ERROR: "Check the submitted information and try again.", INVALID_DOLA_URL: "Paste a valid public Dola thread URL.", DOLA_NO_VIDEO: "No downloadable videos were found in this public thread.", DOLA_CLEAN_SOURCE_UNAVAILABLE: "The original video is temporarily unavailable.", DOLA_EXTRACTION_FAILED: "The Dola thread could not be scanned right now.", SOURCE_RESOLVE_FAILED: "The source page could not be scanned right now.", SOURCE_DELIVERY_FAILED: "The source video could not be delivered right now.", SOURCE_TICKET_INVALID: "This media link has expired. Scan the thread again." }[code || ""] || "The request could not be completed.") },
   ads: { label: "ADVERTISEMENT", houseText: "Creator tools, selected by Weiran Lab." }
 };
 
@@ -88,12 +90,14 @@ const zh: typeof en = {
   video: {
     eyebrow: "视频 · DOLA", title: "获取无水印源视频。", description: "粘贴公开 Dola Thread 链接，我们会解析其中全部原始视频并生成安全下载地址。", supported: "已支持 DOLA",
     platformTitle: "选择平台", platformHint: "未来平台将继续接入同一套处理流程。", publicLinks: "公开 Thread 链接", selected: "已选择",
-    urlTitle: "粘贴链接", urlHint: "一个 Thread 可能包含多个视频。", fieldLabel: "Dola 公开链接", invalid: "请粘贴有效的 Dola 公开 Thread 链接。", startError: "暂时无法创建任务，请稍后重试。", starting: "正在创建任务…", submit: "查找源视频",
+    urlTitle: "粘贴链接", urlHint: "一个 Thread 可能包含多个视频。", fieldLabel: "Dola 公开链接", invalid: "请粘贴有效的 Dola 公开 Thread 链接。", startError: "暂时无法解析该 Thread，请稍后重试。", starting: "正在扫描 Thread…", submit: "查找源视频",
     how: "处理流程", steps: [
       { title: "解析 Thread", description: "识别公开内容中包含的全部视频。" },
-      { title: "获取源文件", description: "将无水印源视频保存到私有对象存储。" },
-      { title: "安全交付", description: "为处理结果生成临时下载链接。" }
-    ], legal: "请仅提交您拥有或已获授权下载、使用的素材。"
+      { title: "展示结果", description: "无需等待上传，直接列出可用的无水印源视频。" },
+      { title: "按需传输", description: "通过短期加密链接预览或下载。" }
+    ], legal: "请仅提交您拥有或已获授权下载、使用的素材。",
+    found: (count: number) => `找到 ${count} 个视频`, resultsTitle: "无水印源视频", expires: (minutes: number) => `链接将在 ${minutes} 分钟后失效`,
+    videoNumber: (index: number) => `视频 ${String(index).padStart(2, "0")}`, original: "原画", noWatermark: "无水印", download: "下载", preview: "预览", hidePreview: "关闭预览"
   },
   image: {
     eyebrow: "图片 · 清理", title: "移除画面中的干扰。", description: "上传已获授权的图片，直接框选水印区域。系统会在保留其他内容的同时修复选中位置。", limit: "每个任务一个区域",
@@ -110,7 +114,7 @@ const zh: typeof en = {
     statuses: { PENDING: "排队中", PROCESSING: "处理中", SUCCESS: "已完成", FAILED: "失败" }
   },
   notFound: { eyebrow: "404 · 页面不存在", title: "这里没有内容。", description: "页面可能已经移动，但工具仍然可以正常使用。", back: "返回首页" },
-  api: { requestFailed: "请求暂时无法完成。", uploadFailed: "图片上传失败，请稍后重试。", error: (code: string | undefined) => ({ RATE_LIMITED: "请求过于频繁，请稍后重试。", UNAUTHENTICATED: "登录状态已失效，请重新操作。", VALIDATION_ERROR: "提交的信息格式不正确。", INVALID_TASK_INPUT: "任务参数不正确，请检查后重试。", TASK_NOT_FOUND: "没有找到该任务。", TASK_NOT_READY: "任务尚未处理完成。" }[code || ""] || "请求暂时无法完成。") },
+  api: { requestFailed: "请求暂时无法完成。", uploadFailed: "图片上传失败，请稍后重试。", error: (code: string | undefined) => ({ RATE_LIMITED: "请求过于频繁，请稍后重试。", UNAUTHENTICATED: "登录状态已失效，请重新操作。", VALIDATION_ERROR: "提交的信息格式不正确。", INVALID_TASK_INPUT: "任务参数不正确，请检查后重试。", TASK_NOT_FOUND: "没有找到该任务。", TASK_NOT_READY: "任务尚未处理完成。", INVALID_DOLA_URL: "请粘贴有效的 Dola 公开 Thread 链接。", DOLA_NO_VIDEO: "该公开 Thread 中没有找到可下载视频。", DOLA_CLEAN_SOURCE_UNAVAILABLE: "原始无水印视频暂时不可用。", DOLA_EXTRACTION_FAILED: "暂时无法解析该 Dola Thread。", SOURCE_RESOLVE_FAILED: "暂时无法解析该素材页面。", SOURCE_DELIVERY_FAILED: "源视频暂时无法下载。", SOURCE_TICKET_INVALID: "下载链接已失效，请重新解析。" }[code || ""] || "请求暂时无法完成。") },
   ads: { label: "广告", houseText: "未然Lab 为创作者精选的工具与服务。" }
 };
 
