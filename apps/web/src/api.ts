@@ -18,8 +18,7 @@ async function parseResponse<T>(response: Response): Promise<T> {
 
 async function createGuestSession(): Promise<string> {
   const response = await fetch(`${API_BASE_URL}/v1/auth/guest`, {
-    method: "POST",
-    headers: { "content-type": "application/json" }
+    method: "POST"
   });
   const session = await parseResponse<{ accessToken: string }>(response);
   localStorage.setItem(TOKEN_KEY, session.accessToken);
@@ -29,13 +28,12 @@ async function createGuestSession(): Promise<string> {
 async function request<T>(path: string, init: RequestInit = {}, retry = true): Promise<T> {
   let token = localStorage.getItem(TOKEN_KEY);
   if (!token) token = await createGuestSession();
+  const headers = new Headers(init.headers);
+  headers.set("authorization", `Bearer ${token}`);
+  if (init.body != null && !headers.has("content-type")) headers.set("content-type", "application/json");
   const response = await fetch(`${API_BASE_URL}${path}`, {
     ...init,
-    headers: {
-      "content-type": "application/json",
-      ...(init.headers ?? {}),
-      authorization: `Bearer ${token}`
-    }
+    headers
   });
   if (response.status === 401 && retry) {
     localStorage.removeItem(TOKEN_KEY);

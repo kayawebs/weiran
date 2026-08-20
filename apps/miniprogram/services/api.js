@@ -6,7 +6,7 @@ function rawRequest(path, method, data, token) {
       method,
       data,
       header: {
-        "content-type": "application/json",
+        ...(data === undefined ? {} : { "content-type": "application/json" }),
         ...(token ? { Authorization: `Bearer ${token}` } : {})
       },
       success(response) {
