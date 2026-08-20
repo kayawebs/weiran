@@ -114,7 +114,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.get("/v1/capabilities", async () => ({
     deployment: { market: env.DEPLOYMENT_MARKET, defaultLocale: env.DEPLOYMENT_MARKET === "cn" ? "zh-CN" : "en" },
-    taskTypes: ["IMAGE_WATERMARK_REMOVE", "VIDEO_WATERMARK_REMOVE", "SOURCE_DOWNLOAD"],
+    taskTypes: ["IMAGE_WATERMARK_REMOVE", "SOURCE_DOWNLOAD"],
     videoWatermarkPlatforms: listVideoPlatforms().map((platform) => ({
       id: platform.id,
       name: platform.name,
@@ -219,6 +219,13 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
 
   app.post("/v1/tasks", { preHandler: requireAuthentication }, async (request, reply) => {
     const body = createTaskSchema.parse(request.body);
+    if (body.taskType === "VIDEO_WATERMARK_REMOVE") {
+      return reply.code(410).send({
+        code: "VIDEO_FLOW_MIGRATED",
+        message: publicErrorMessage("VIDEO_FLOW_MIGRATED"),
+        replacement: "/v1/sources/resolve"
+      });
+    }
     const task = await taskService.create(request.userId, body);
     reply.code(202);
     return presentTask(task);

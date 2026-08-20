@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { AdSlot } from "../ads/AdSlot";
 import { copy } from "../i18n/copy";
@@ -7,6 +7,7 @@ import type { ResultFile, Task } from "../types";
 
 export function TaskPage() {
   const { taskId = "" } = useParams();
+  const navigate = useNavigate();
   const [task, setTask] = useState<Task | null>(null);
   const [results, setResults] = useState<ResultFile[]>([]);
   const [error, setError] = useState("");
@@ -18,6 +19,12 @@ export function TaskPage() {
       try {
         const next = await api.getTask(taskId);
         if (cancelled) return;
+        const legacyVideoUrl = typeof next.input.url === "string" ? next.input.url : null;
+        if (next.taskType === "VIDEO_WATERMARK_REMOVE" && next.status !== "SUCCESS" && legacyVideoUrl) {
+          const query = new URLSearchParams({ url: legacyVideoUrl, scan: "1" });
+          navigate(`/tools/video?${query.toString()}`, { replace: true });
+          return;
+        }
         setTask(next);
         setError("");
         if (next.status === "SUCCESS") {
@@ -32,7 +39,7 @@ export function TaskPage() {
     }
     void refresh();
     return () => { cancelled = true; if (timer) window.clearTimeout(timer); };
-  }, [taskId]);
+  }, [navigate, taskId]);
 
   const status = task?.status ?? "PENDING";
   return (

@@ -1,4 +1,5 @@
-import { type FormEvent, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { api, apiMediaUrl, ApiError } from "../api";
 import { PageIntro } from "../components/PageIntro";
 import { copy } from "../i18n/copy";
@@ -17,11 +18,35 @@ function qualityLabel(quality: string, height: number | null): string {
 }
 
 export function VideoSourcePage() {
-  const [url, setUrl] = useState("");
+  const [searchParams] = useSearchParams();
+  const incomingUrl = searchParams.get("url") ?? "";
+  const shouldAutoScan = searchParams.get("scan") === "1";
+  const [url, setUrl] = useState(incomingUrl);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [result, setResult] = useState<ResolvedSource | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
+  const autoScanStarted = useRef(false);
+
+  const scanUrl = useCallback(async (sourceUrl: string) => {
+    setError("");
+    setSubmitting(true);
+    try {
+      const resolved = await api.resolveVideoSources(sourceUrl);
+      setResult(resolved);
+      setPreviewId(null);
+    } catch (cause) {
+      setError(cause instanceof ApiError ? cause.message : copy.video.startError);
+    } finally {
+      setSubmitting(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!shouldAutoScan || autoScanStarted.current || !/^https:\/\/(www\.)?dola\.com\/thread\/[A-Za-z0-9_-]+\/?(?:\?.*)?$/.test(incomingUrl)) return;
+    autoScanStarted.current = true;
+    void scanUrl(incomingUrl);
+  }, [incomingUrl, scanUrl, shouldAutoScan]);
 
   async function submit(event: FormEvent) {
     event.preventDefault();
@@ -30,16 +55,7 @@ export function VideoSourcePage() {
       setError(copy.video.invalid);
       return;
     }
-    setSubmitting(true);
-    try {
-      const resolved = await api.resolveVideoSources(url.trim());
-      setResult(resolved);
-      setPreviewId(null);
-    } catch (cause) {
-      setError(cause instanceof ApiError ? cause.message : copy.video.startError);
-    } finally {
-      setSubmitting(false);
-    }
+    await scanUrl(url.trim());
   }
 
   return (

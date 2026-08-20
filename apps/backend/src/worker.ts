@@ -10,9 +10,7 @@ import { DownloaderService } from "./modules/downloader/downloader.service.js";
 import { DirectMediaExtractor } from "./modules/extractor/direct-media.extractor.js";
 import { DolaExtractor } from "./modules/extractor/dola.extractor.js";
 import { ExtractorRegistry, type MediaItem, type MediaSource, type MediaStream } from "./modules/extractor/source-extractor.js";
-import { getVideoPlatform } from "./modules/platform/video-platforms.js";
 import { ImageWatermarkProcessor } from "./modules/processor/image/image.processor.js";
-import { VideoWatermarkProcessor } from "./modules/processor/video/video.processor.js";
 import { AssetRepository } from "./modules/storage/asset.repository.js";
 import { StorageService } from "./modules/storage/storage.service.js";
 import { mediaTypeFromMime, type MediaAsset } from "./modules/storage/storage.types.js";
@@ -27,7 +25,6 @@ const tasks = new TaskRepository(pool);
 const downloader = new DownloaderService();
 const extractors = new ExtractorRegistry([new DolaExtractor(), new DirectMediaExtractor()]);
 const imageProcessor = new ImageWatermarkProcessor();
-const videoProcessor = new VideoWatermarkProcessor();
 
 const extensionsByMime: Record<string, string> = {
   "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp",
@@ -156,57 +153,7 @@ async function execute(task: TaskRecord): Promise<Record<string, unknown>> {
     }
 
     if (input.taskType === "VIDEO_WATERMARK_REMOVE") {
-      const platform = getVideoPlatform(input.input.platform);
-      const source = await extractors.extract(input.input.url);
-      if (source.extractorId !== platform.extractorId) throw new Error("The URL does not match the selected platform");
-      const videoItems = source.items.filter((item) => item.mediaType === "video");
-      if (videoItems.length === 0) throw new Error("No videos were found at this URL");
-      await tasks.addEvent(task.id, "PROCESSING", `已发现 ${videoItems.length} 个视频，开始处理`, {
-        platform: platform.id, count: videoItems.length
-      });
-
-      const results: Array<Record<string, unknown>> = [];
-      for (let index = 0; index < videoItems.length; index += 1) {
-        const item = videoItems[index]!;
-        if (platform.requiresCleanSource && !item.streams.some((stream) => stream.watermarked === false)) {
-          throw Object.assign(new Error(`${platform.name} 原画视频暂时不可用`), { code: "CLEAN_SOURCE_UNAVAILABLE" });
-        }
-        const downloaded = await downloadSourceItem(task.userId, source, item, directory, index);
-        let resultFile = downloaded.localFile;
-        let deliveryMode = downloaded.stream.watermarked === false ? "clean-source" : "platform-source";
-        if (downloaded.stream.watermarked !== false) {
-          resultFile = join(directory, `watermark-removed-${index + 1}.mp4`);
-          await videoProcessor.remove(downloaded.localFile, resultFile, platform.watermarkRegions);
-          deliveryMode = "platform-preset";
-        }
-        const result = await persistResult(
-          task,
-          resultFile,
-          "video/mp4",
-          `${platform.id}-${index + 1}.mp4`,
-          { platform: platform.id, sourceAssetId: downloaded.asset.id, sourceTitle: item.title, deliveryMode }
-        );
-        results.push({
-          assetId: result.id,
-          sourceAssetId: downloaded.asset.id,
-          title: item.title,
-          cover: item.cover,
-          duration: item.duration,
-          deliveryMode,
-          index
-        });
-        await tasks.addEvent(task.id, "PROCESSING", `第 ${index + 1}/${videoItems.length} 个视频处理完成`, {
-          platform: platform.id, index
-        });
-      }
-      return {
-        resultAssetId: results[0]?.assetId,
-        resultAssetIds: results.map((result) => result.assetId),
-        results,
-        platform: platform.id,
-        sourceTitle: source.title,
-        sourceUrl: input.input.url
-      };
+      throw Object.assign(new Error("Legacy video tasks have moved to synchronous source resolution"), { code: "VIDEO_FLOW_MIGRATED" });
     }
 
     throw new Error(`No worker handler for ${input.taskType}`);
@@ -229,6 +176,11 @@ async function processTask(job: Job<{ taskId: string }>): Promise<void> {
   } catch (error) {
     const code = publicErrorCode(error);
     console.error("Task processing attempt failed", { taskId: task.id, code, error });
+    if (code === "VIDEO_FLOW_MIGRATED") {
+      await tasks.markFailed(task.id, code, publicErrorMessage(code));
+      await tasks.addEvent(task.id, "FAILED", "Video task moved to the source resolver", { code });
+      return;
+    }
     await tasks.markPendingRetry(task.id, publicErrorMessage(code));
     await tasks.addEvent(task.id, "PENDING", "Processing attempt failed; retry scheduled", { code });
     throw error;

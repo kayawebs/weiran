@@ -8,7 +8,8 @@ const publicErrorMessages = {
   DOLA_EXTRACTION_FAILED: "暂时无法解析该 Dola Thread",
   SOURCE_RESOLVE_FAILED: "暂时无法解析该素材页面",
   SOURCE_DELIVERY_FAILED: "源视频暂时无法下载",
-  SOURCE_TICKET_INVALID: "下载链接已失效，请重新解析"
+  SOURCE_TICKET_INVALID: "下载链接已失效，请重新解析",
+  VIDEO_FLOW_MIGRATED: "旧版视频任务已迁移到即时素材扫描"
 };
 
 function publicErrorMessage(code) {

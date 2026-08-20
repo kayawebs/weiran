@@ -14,6 +14,7 @@ const publicMessages: Record<string, string> = {
   UNSAFE_SOURCE_URL: "The source media URL is not allowed.",
   UNAUTHENTICATED: "Your session is invalid or has expired.",
   UNSUPPORTED_SOURCE: "This source platform is not supported yet.",
+  VIDEO_FLOW_MIGRATED: "This video task has moved to the instant source scanner.",
   WEB_GUEST_AUTH_DISABLED: "Guest access is not available.",
   WECHAT_AUTH_UNAVAILABLE: "WeChat login is temporarily unavailable.",
   WECHAT_LOGIN_FAILED: "The WeChat login code is invalid or has expired."
