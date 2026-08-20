@@ -9,7 +9,7 @@
     "build": "tsc -p tsconfig.json",
     "start:api": "node dist/api.js",
     "start:worker": "node dist/worker.js",
-    "test": "node --import tsx --test src/**/*.test.ts",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "migrate": "tsx src/migrate.ts",
     "migrate:production": "node dist/migrate.js"

@@ -4,8 +4,10 @@ import type { Pool, PoolClient } from "pg";
 type Queryable = Pool | PoolClient;
 
 export async function ensureUser(db: Queryable, userId: string): Promise<void> {
-  await db.query(`INSERT INTO users (id, external_id) VALUES ($1, $1)
-    ON CONFLICT (id) DO NOTHING`, [userId]);
+  // A PostgreSQL bind parameter has one inferred type. Reusing $1 for both the
+  // UUID id and TEXT external_id makes PostgreSQL reject the query with 42P08.
+  await db.query(`INSERT INTO users (id, external_id) VALUES ($1::uuid, $2::text)
+    ON CONFLICT (id) DO NOTHING`, [userId, userId]);
 }
 
 export async function findOrCreateUserByExternalId(db: Queryable, externalId: string): Promise<{ id: string }> {
