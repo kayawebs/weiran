@@ -117,7 +117,7 @@ npm run build:web:cn
 npm run build:web:global
 ```
 
-服务器使用 `deploy/cn.env.example` 或 `deploy/global.env.example` 作为模板。不要创建长期 `cn` / `global` Git 分支；区域差异通过配置、文案目录和广告 Adapter 管理。
+服务器使用 `deploy/cn.env.example` 或 `deploy/global.env.example` 作为模板。Global 服务器运行 `./deploy/init-global-env.sh` 即可一次性生成 JWT 与 PostgreSQL 强密码；脚本不会覆盖已有配置，之后只需填写 `deploy/global.env` 的 `OSS_*` 字段。不要创建长期 `cn` / `global` Git 分支；区域差异通过配置、文案目录和广告 Adapter 管理。
 
 ## 微信小程序
 

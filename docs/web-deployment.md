@@ -82,10 +82,12 @@ docker compose --env-file deploy/cn.env up -d --build
 海外服务器执行：
 
 ```bash
-cp deploy/global.env.example deploy/global.env
-# 编辑 deploy/global.env
+./deploy/init-global-env.sh
+# 只编辑 deploy/global.env 中的 OSS_* 配置
 docker compose --env-file deploy/global.env up -d --build
 ```
+
+初始化脚本使用 OpenSSL 一次性生成 JWT Secret 和 URL 安全的 PostgreSQL 密码，将 `deploy/global.env` 权限设为 `600`，且在文件已存在时绝不覆盖。Global 版不需要微信凭证；完成初始化后，只需填写 OSS Bucket、地域、RAM AccessKey 和与服务器网络匹配的 OSS Endpoint。
 
 启动后检查：
 
@@ -93,7 +95,8 @@ docker compose --env-file deploy/global.env up -d --build
 docker compose --env-file deploy/cn.env ps
 # 海外服务器将 cn.env 替换为 global.env
 curl http://127.0.0.1:8080/healthz
-curl http://127.0.0.1:3000/health
+# Global 默认使用 3001；国内模板默认使用 3000
+curl http://127.0.0.1:3001/health
 ```
 
 Compose 会依次启动 PostgreSQL、迁移、Redis、API、Worker 和 Web。数据库与 Redis 数据分别保存在命名卷 `postgres-data`、`redis-data`。

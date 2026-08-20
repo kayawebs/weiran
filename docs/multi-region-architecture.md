@@ -129,9 +129,11 @@ docker compose --env-file deploy/cn.env up -d --build
 海外服务器：
 
 ```bash
-cp deploy/global.env.example deploy/global.env
-# 编辑 deploy/global.env 中的服务端秘密
+./deploy/init-global-env.sh
+# JWT 与 PostgreSQL 密码已一次性生成；只编辑 deploy/global.env 中的 OSS_* 配置
 docker compose --env-file deploy/global.env up -d --build
 ```
+
+`init-global-env.sh` 只在 `deploy/global.env` 不存在时生成 JWT 与数据库强密码，文件权限为 `600`；重复运行会保留已有文件和密钥，不会导致用户会话或数据库凭证失效。Global API 默认仅映射到宿主机 `127.0.0.1:3001`，容器内部仍使用 `3000`。
 
 `COMPOSE_PROJECT_NAME` 已分别设置为 `weiran-cn` 与 `weiran-global`，容器网络和数据卷不会重名。正式环境推荐使用两台不同地域的服务器；如果临时在同一台测试机同时运行两套，还必须把其中一套的 `WEB_PORT` 和 `API_PUBLIC_PORT` 改为不同端口。
