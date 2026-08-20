@@ -148,7 +148,9 @@ function coverUrl(video: UnknownRecord): string | null {
   const cover = isRecord(video.cover) ? video.cover : null;
   const preview = cover && isRecord(cover.image_preview) ? cover.image_preview : null;
   const thumb = cover && isRecord(cover.image_thumb) ? cover.image_thumb : null;
-  return stringValue(preview?.url) ?? stringValue(thumb?.url);
+  // Dola's large preview is often HEIC, which many desktop browsers cannot
+  // render. Prefer the thumbnail rendition and keep HEIC only as a fallback.
+  return stringValue(thumb?.url) ?? stringValue(preview?.url);
 }
 
 function streamsForVideo(video: UnknownRecord): MediaStream[] {

@@ -37,7 +37,7 @@ const sourceResolveSchema = z.object({
       && /^\/thread\/[A-Za-z0-9_-]+\/?$/.test(url.pathname);
   }, "Enter a public Dola thread URL")
 });
-const sourceMediaParams = z.object({ ticket: z.string().min(100).max(4096) });
+const sourceMediaParams = z.object({ ticket: z.string().regex(/^[A-Za-z0-9_-]{43}$/) });
 const sourceMediaQuery = z.object({ download: z.literal("1").optional() });
 const extensionByMime: Record<string, string> = {
   "image/jpeg": ".jpg", "image/png": ".png", "image/webp": ".webp", "image/heic": ".heic",
@@ -104,8 +104,9 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
   const tasks = new TaskRepository(pool);
   const taskService = new TaskService();
   const authService = new AuthService();
-  const sourceResolution = new SourceResolutionService();
   const sourceTickets = new SourceTicketService();
+  const sourceResolution = new SourceResolutionService(sourceTickets);
+  app.addHook("onClose", async () => sourceTickets.close());
 
   app.get("/health", async () => {
     await pool.query("SELECT 1");

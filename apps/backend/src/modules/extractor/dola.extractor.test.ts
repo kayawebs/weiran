@@ -48,7 +48,10 @@ test("parses every video from a Dola thread router payload", () => {
                     height: 1920,
                     duration: 4.2,
                     download_url: firstWatermarkedUrl,
-                    cover: { image_preview: { url: "https://example.com/cover-one.jpg" } },
+                    cover: {
+                      image_preview: { url: "https://example.com/cover-one.heic" },
+                      image_thumb: { url: "https://example.com/cover-one.png" }
+                    },
                     video_model: JSON.stringify({
                       video_list: {
                         origin: { definition: "source", vwidth: 1080, vheight: 1920, main_url: encodedUrl(firstCleanUrl) }
@@ -74,6 +77,7 @@ test("parses every video from a Dola thread router payload", () => {
   assert.equal(source.title, "测试 Thread");
   assert.equal(source.items.length, 2);
   assert.equal(source.items[0]?.title, "测试 Thread 1");
+  assert.equal(source.items[0]?.cover, "https://example.com/cover-one.png");
   assert.equal(source.items[0]?.streams[0]?.url, firstCleanUrl);
   assert.equal(source.items[0]?.streams[0]?.watermarked, false);
   assert.equal(source.items[0]?.streams[1]?.watermarked, true);

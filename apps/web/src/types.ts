@@ -49,6 +49,7 @@ export type ResolvedSourceVideo = {
   width: number | null;
   height: number | null;
   mimeType: string;
+  filename: string;
   previewPath: string;
   downloadPath: string;
 };

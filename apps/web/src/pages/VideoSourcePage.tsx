@@ -100,8 +100,8 @@ export function VideoSourcePage() {
               </div>
             </div>
             <div className="source-result-actions">
-              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download>{copy.video.download}<span>↓</span></a>
-              <button className="secondary-action" type="button" onClick={() => setPreviewId(previewId === video.id ? null : video.id)}>{previewId === video.id ? copy.video.hidePreview : copy.video.preview}<span>▶</span></button>
+              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download={video.filename}>{copy.video.download}<span>↓</span></a>
+              <button className="secondary-action" type="button" onClick={() => setPreviewId(previewId === video.id ? null : video.id)}>{previewId === video.id ? copy.video.hidePreview : copy.video.preview}<span>{previewId === video.id ? "×" : "▶"}</span></button>
             </div>
             {previewId === video.id && <div className="source-preview"><video src={previewUrl} poster={coverUrl ?? undefined} controls playsInline preload="metadata" /></div>}
           </article>;

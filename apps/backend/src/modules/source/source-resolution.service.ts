@@ -13,6 +13,7 @@ export type ResolvedSourceVideo = {
   width: number | null;
   height: number | null;
   mimeType: string;
+  filename: string;
   previewPath: string;
   downloadPath: string;
 };
@@ -40,7 +41,8 @@ function ticketPath(ticket: string, download = false): string {
 
 export class SourceResolutionService {
   private readonly extractors = new ExtractorRegistry([new DolaExtractor()]);
-  private readonly tickets = new SourceTicketService();
+
+  constructor(private readonly tickets: SourceTicketService) {}
 
   async resolve(platformId: VideoPlatformId, url: string): Promise<ResolvedSource> {
     const platform = getVideoPlatform(platformId);
@@ -80,6 +82,7 @@ export class SourceResolutionService {
         width: stream.width ?? null,
         height: stream.height ?? null,
         mimeType: stream.mimeType,
+        filename,
         previewPath: ticketPath(mediaTicket),
         downloadPath: ticketPath(mediaTicket, true)
       };

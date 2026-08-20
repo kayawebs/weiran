@@ -1,5 +1,5 @@
-import { createHash, randomUUID } from "node:crypto";
-import { EncryptJWT, jwtDecrypt } from "jose";
+import { randomBytes } from "node:crypto";
+import { Redis } from "ioredis";
 import { z } from "zod";
 import { env } from "../../config/env.js";
 
@@ -19,41 +19,38 @@ export class SourceTicketError extends Error {
   constructor() { super("Source media ticket is invalid or expired"); }
 }
 
-function encryptionKey(): Uint8Array {
-  if (!env.JWT_SECRET) throw Object.assign(new Error("Source ticket encryption is not configured"), { code: "AUTH_NOT_CONFIGURED" });
-  return createHash("sha256")
-    .update("weiran-lab/source-media-ticket/v1\0")
-    .update(env.JWT_SECRET)
-    .digest();
-}
-
-const issuer = `${env.JWT_ISSUER}:source-media`;
-const audience = `${env.JWT_AUDIENCE}:source-media`;
-
 export class SourceTicketService {
+  private readonly redis = new Redis(env.REDIS_URL, { maxRetriesPerRequest: null });
+  private readonly keyPrefix = "source-media-ticket:";
+
   async create(payload: SourceTicketPayload): Promise<string> {
     const validated = sourceTicketSchema.parse(payload);
-    return new EncryptJWT(validated)
-      .setProtectedHeader({ alg: "dir", enc: "A256GCM", typ: "source-media+jwt" })
-      .setIssuer(issuer)
-      .setAudience(audience)
-      .setJti(randomUUID())
-      .setIssuedAt()
-      .setExpirationTime(`${env.DOWNLOAD_URL_TTL_SECONDS}s`)
-      .encrypt(encryptionKey());
+    const serialized = JSON.stringify(validated);
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const ticket = randomBytes(32).toString("base64url");
+      const stored = await this.redis.set(
+        `${this.keyPrefix}${ticket}`,
+        serialized,
+        "EX",
+        env.DOWNLOAD_URL_TTL_SECONDS,
+        "NX"
+      );
+      if (stored === "OK") return ticket;
+    }
+    throw Object.assign(new Error("Could not allocate a source media ticket"), { code: "SOURCE_TICKET_STORE_FAILED" });
   }
 
   async read(ticket: string): Promise<SourceTicketPayload> {
+    const serialized = await this.redis.get(`${this.keyPrefix}${ticket}`);
+    if (!serialized) throw new SourceTicketError();
     try {
-      const result = await jwtDecrypt(ticket, encryptionKey(), {
-        issuer,
-        audience,
-        keyManagementAlgorithms: ["dir"],
-        contentEncryptionAlgorithms: ["A256GCM"]
-      });
-      return sourceTicketSchema.parse(result.payload);
+      return sourceTicketSchema.parse(JSON.parse(serialized) as unknown);
     } catch {
       throw new SourceTicketError();
     }
+  }
+
+  async close(): Promise<void> {
+    if (this.redis.status !== "end") await this.redis.quit();
   }
 }

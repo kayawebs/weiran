@@ -35,10 +35,10 @@ const en = {
     how: "HOW IT WORKS", steps: [
       { title: "Resolve the thread", description: "Identify every video attached to the public post." },
       { title: "Show results", description: "List the clean source files without waiting for an upload." },
-      { title: "Stream on demand", description: "Preview or download through a temporary encrypted link." }
+      { title: "Stream on demand", description: "Preview or download through a short-lived private link." }
     ], legal: "Only submit material you own or have permission to download and reuse.",
     found: (count: number) => `${count} VIDEO${count === 1 ? "" : "S"} FOUND`, resultsTitle: "Clean source videos", expires: (minutes: number) => `Links refresh after ${minutes} minutes`,
-    videoNumber: (index: number) => `VIDEO ${String(index).padStart(2, "0")}`, original: "ORIGINAL", noWatermark: "No watermark", download: "Download", preview: "Preview", hidePreview: "Close preview"
+    videoNumber: (index: number) => `VIDEO ${String(index).padStart(2, "0")}`, original: "ORIGINAL", noWatermark: "No watermark", download: "Download", preview: "Preview", hidePreview: "Close"
   },
   image: {
     eyebrow: "IMAGE · CLEANUP", title: "Remove what gets in the way.", description: "Upload an authorized image and draw directly over the watermark. We restore the selected area while preserving the rest.", limit: "REGION PER TASK",
@@ -94,10 +94,10 @@ const zh: typeof en = {
     how: "处理流程", steps: [
       { title: "解析 Thread", description: "识别公开内容中包含的全部视频。" },
       { title: "展示结果", description: "无需等待上传，直接列出可用的无水印源视频。" },
-      { title: "按需传输", description: "通过短期加密链接预览或下载。" }
+      { title: "按需传输", description: "通过短期私有链接预览或下载。" }
     ], legal: "请仅提交您拥有或已获授权下载、使用的素材。",
     found: (count: number) => `找到 ${count} 个视频`, resultsTitle: "无水印源视频", expires: (minutes: number) => `链接将在 ${minutes} 分钟后失效`,
-    videoNumber: (index: number) => `视频 ${String(index).padStart(2, "0")}`, original: "原画", noWatermark: "无水印", download: "下载", preview: "预览", hidePreview: "关闭预览"
+    videoNumber: (index: number) => `视频 ${String(index).padStart(2, "0")}`, original: "原画", noWatermark: "无水印", download: "下载", preview: "预览", hidePreview: "关闭"
   },
   image: {
     eyebrow: "图片 · 清理", title: "移除画面中的干扰。", description: "上传已获授权的图片，直接框选水印区域。系统会在保留其他内容的同时修复选中位置。", limit: "每个任务一个区域",

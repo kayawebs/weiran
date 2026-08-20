@@ -79,7 +79,7 @@ POST /v1/sources/resolve
 }
 ```
 
-接口直接返回 `videoCount` 与 `videos[]`。每个视频包含短期 `previewPath` 和 `downloadPath`；地址使用不可篡改的加密票据，不向浏览器暴露源 CDN URL 或请求头。用户点击后由 `GET /v1/source-media/:ticket` 按需流式转发。图片去水印等耗时、需要持久化结果的操作仍返回 `202` Task，并在成功后通过 OSS 短期链接交付。
+接口直接返回 `videoCount` 与 `videos[]`。每个视频包含短期 `previewPath` 和 `downloadPath`；浏览器只获得随机短票据，完整源 CDN URL 与请求头在 Redis 中保存 15 分钟。用户点击后由 `GET /v1/source-media/:ticket` 按需流式转发。图片去水印等耗时、需要持久化结果的操作仍返回 `202` Task，并在成功后通过 OSS 短期链接交付。
 
 开发环境会默认创建本地测试用户。部署生产前，必须关闭 `ALLOW_INSECURE_DEV_AUTH` 并配置 JWT；国内部署还需要微信凭证与小程序合法域名。两地都要将 API CORS、OSS 跨域规则配置为各自的实际 HTTPS 域名。
 
