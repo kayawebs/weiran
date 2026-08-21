@@ -11,6 +11,7 @@ export type ToolDefinition = {
   status: ToolStatus;
   path: string;
   mark: string;
+  logo?: string;
   title: LocalizedText;
   shortTitle: LocalizedText;
   description: LocalizedText;
@@ -75,6 +76,7 @@ export const tools: ToolDefinition[] = [
     status: "live",
     path: "/download/dola",
     mark: "D",
+    logo: "/logos/dola.png",
     title: text("Dola video downloader", "Dola 视频下载"),
     shortTitle: text("Dola videos", "Dola 视频"),
     description: text("Find every clean source video in a public Dola thread and download the original MP4.", "解析公开 Dola Thread 中的全部无水印源视频并下载原始 MP4。"),
@@ -82,63 +84,63 @@ export const tools: ToolDefinition[] = [
     tags: [text("Multiple videos", "多视频"), text("Original MP4", "原始 MP4"), text("Instant scan", "即时解析")]
   },
   {
-    id: "jimeng-video", category: "download", status: "planned", path: "/download/jimeng", mark: "JM",
+    id: "jimeng-video", category: "download", status: "planned", path: "/download/jimeng", mark: "JM", logo: "/logos/jimeng.png",
     title: text("Jimeng / Seedance downloader", "即梦 / Seedance 下载"), shortTitle: text("Jimeng / Seedance", "即梦 / Seedance"),
     description: text("Prepare original Jimeng and Seedance creator videos from public share links.", "从公开分享链接获取即梦与 Seedance 创作者原始视频。"),
     seoDescription: text("A dedicated Jimeng and Seedance source download workspace for AI creators.", "面向 AI 创作者的即梦与 Seedance 专属素材下载工作台。"),
     tags: [text("AI video", "AI 视频"), text("Share link", "分享链接")]
   },
   {
-    id: "dreamina-video", category: "download", status: "planned", path: "/download/dreamina", mark: "DR",
+    id: "dreamina-video", category: "download", status: "planned", path: "/download/dreamina", mark: "DR", logo: "/logos/jimeng.png",
     title: text("Dreamina / CapCut downloader", "Dreamina / 剪映下载"), shortTitle: text("Dreamina / CapCut", "Dreamina / 剪映"),
     description: text("Resolve public Dreamina and CapCut AI creation links into reusable source media.", "解析公开 Dreamina 与剪映 AI 创作链接，获取可再利用的源素材。"),
     seoDescription: text("A dedicated Dreamina and CapCut AI video source downloader.", "Dreamina 与剪映 AI 视频专属素材下载工具。"),
     tags: [text("Seedance", "Seedance"), text("AI video", "AI 视频")]
   },
   {
-    id: "doubao-video", category: "download", status: "planned", path: "/download/doubao", mark: "DB",
+    id: "doubao-video", category: "download", status: "planned", path: "/download/doubao", mark: "DB", logo: "/logos/doubao.png",
     title: text("Doubao video downloader", "豆包视频下载"), shortTitle: text("Doubao", "豆包"),
     description: text("Extract creator-ready video assets from supported public Doubao share links.", "从受支持的豆包公开分享链接提取可继续创作的视频素材。"),
     seoDescription: text("A dedicated Doubao AI video source download tool for creators.", "面向创作者的豆包 AI 视频专属素材下载工具。"),
     tags: [text("AI video", "AI 视频"), text("Public links", "公开链接")]
   },
   {
-    id: "vibes-video", category: "download", status: "planned", path: "/download/vibes", mark: "VB",
+    id: "vibes-video", category: "download", status: "planned", path: "/download/vibes", mark: "VB", logo: "/logos/meta.png",
     title: text("Meta Vibes downloader", "Meta Vibes 下载"), shortTitle: text("Meta Vibes", "Meta Vibes"),
     description: text("Collect original media from public Meta AI Vibes posts.", "从公开 Meta AI Vibes 内容中获取原始媒体。"),
     seoDescription: text("A dedicated Meta AI Vibes video download workspace.", "Meta AI Vibes 视频专属下载工作台。"),
     tags: [text("Meta AI", "Meta AI"), text("Video", "视频")]
   },
   {
-    id: "gemini-flow-video", category: "download", status: "planned", path: "/download/gemini-flow", mark: "GF",
+    id: "gemini-flow-video", category: "download", status: "planned", path: "/download/gemini-flow", mark: "GF", logo: "/logos/flow.png",
     title: text("Gemini Flow video downloader", "Gemini Flow 视频下载"), shortTitle: text("Gemini Flow", "Gemini Flow"),
     description: text("Prepare supported Gemini, Flow, and Veo video outputs for creator workflows.", "获取受支持的 Gemini、Flow 与 Veo 视频输出，用于后续创作。"),
     seoDescription: text("A dedicated Gemini Flow and Veo video download tool for AI creators.", "面向 AI 创作者的 Gemini Flow 与 Veo 视频下载工具。"),
     tags: [text("Veo", "Veo"), text("Google AI", "Google AI")]
   },
   {
-    id: "sora-video", category: "download", status: "planned", path: "/download/sora", mark: "SO",
+    id: "sora-video", category: "download", status: "planned", path: "/download/sora", mark: "SO", logo: "/logos/openai.svg",
     title: text("Sora video downloader", "Sora 视频下载"), shortTitle: text("Sora", "Sora"),
     description: text("A dedicated source workflow for supported public Sora creations.", "面向受支持的公开 Sora 作品提供专属素材获取流程。"),
     seoDescription: text("A dedicated Sora AI video source download workspace.", "Sora AI 视频专属素材下载工作台。"),
     tags: [text("OpenAI", "OpenAI"), text("AI video", "AI 视频")]
   },
   {
-    id: "kling-video", category: "download", status: "planned", path: "/download/kling", mark: "KL",
+    id: "kling-video", category: "download", status: "planned", path: "/download/kling", mark: "KL", logo: "/logos/kling.png",
     title: text("Kling video downloader", "可灵视频下载"), shortTitle: text("Kling", "可灵"),
     description: text("Prepare original Kling AI video assets from supported public links.", "从受支持的公开链接获取可灵 AI 原始视频素材。"),
     seoDescription: text("A dedicated Kling AI video download tool for creators.", "面向创作者的可灵 AI 视频专属下载工具。"),
     tags: [text("AI video", "AI 视频"), text("Creator source", "创作源素材")]
   },
   {
-    id: "hailuo-video", category: "download", status: "planned", path: "/download/hailuo", mark: "HL",
+    id: "hailuo-video", category: "download", status: "planned", path: "/download/hailuo", mark: "HL", logo: "/logos/hailuo.png",
     title: text("Hailuo video downloader", "海螺视频下载"), shortTitle: text("Hailuo", "海螺"),
     description: text("Resolve supported Hailuo AI share links into reusable video assets.", "将受支持的海螺 AI 分享链接解析为可再利用的视频素材。"),
     seoDescription: text("A dedicated Hailuo AI video download tool.", "海螺 AI 视频专属下载工具。"),
     tags: [text("AI video", "AI 视频"), text("Share link", "分享链接")]
   },
   {
-    id: "dola-images", category: "download", status: "planned", path: "/download/dola-images", mark: "DI",
+    id: "dola-images", category: "download", status: "planned", path: "/download/dola-images", mark: "DI", logo: "/logos/dola.png",
     title: text("Dola image extractor", "Dola 图片提取"), shortTitle: text("Dola images", "Dola 图片"),
     description: text("Extract every original image attached to a public Dola thread.", "提取公开 Dola Thread 中的全部原始图片。"),
     seoDescription: text("Extract and download original images from a public Dola thread.", "从公开 Dola Thread 提取并下载原始图片。"),
@@ -152,28 +154,28 @@ export const tools: ToolDefinition[] = [
     tags: [text("Multiple links", "多链接"), text("ZIP", "ZIP")]
   },
   {
-    id: "tiktok-video", category: "download", status: "planned", path: "/download/tiktok", mark: "TK",
+    id: "tiktok-video", category: "download", status: "planned", path: "/download/tiktok", mark: "TK", logo: "/logos/tiktok.png",
     title: text("TikTok source downloader", "TikTok 素材下载"), shortTitle: text("TikTok", "TikTok"),
     description: text("Prepare creator-authorized media from supported public TikTok links.", "从受支持的 TikTok 公开链接获取已获授权的创作素材。"),
     seoDescription: text("A dedicated TikTok public source downloader for authorized creator workflows.", "面向已授权创作流程的 TikTok 公开素材专属下载工具。"),
     tags: [text("Public links", "公开链接"), text("Creator source", "创作源素材")]
   },
   {
-    id: "douyin-video", category: "download", status: "planned", path: "/download/douyin", mark: "DY",
+    id: "douyin-video", category: "download", status: "planned", path: "/download/douyin", mark: "DY", logo: "/logos/douyin.png",
     title: text("Douyin source downloader", "抖音素材下载"), shortTitle: text("Douyin", "抖音"),
     description: text("Prepare creator-authorized media from supported public Douyin links.", "从受支持的抖音公开链接获取已获授权的创作素材。"),
     seoDescription: text("A dedicated Douyin public source downloader for authorized creator workflows.", "面向已授权创作流程的抖音公开素材专属下载工具。"),
     tags: [text("Short links", "短链接"), text("Video", "视频")]
   },
   {
-    id: "xiaohongshu-media", category: "download", status: "planned", path: "/download/xiaohongshu", mark: "XHS",
+    id: "xiaohongshu-media", category: "download", status: "planned", path: "/download/xiaohongshu", mark: "XHS", logo: "/logos/xiaohongshu.png",
     title: text("Xiaohongshu source downloader", "小红书素材下载"), shortTitle: text("Xiaohongshu / RedNote", "小红书"),
     description: text("Prepare supported public Xiaohongshu videos and image posts for authorized workflows.", "从受支持的小红书公开视频与图文笔记获取已授权素材。"),
     seoDescription: text("A dedicated Xiaohongshu and RedNote public media source downloader.", "小红书与 RedNote 公开媒体专属素材下载工具。"),
     tags: [text("Video", "视频"), text("Image posts", "图文")]
   },
   {
-    id: "kuaishou-video", category: "download", status: "planned", path: "/download/kuaishou", mark: "KS",
+    id: "kuaishou-video", category: "download", status: "planned", path: "/download/kuaishou", mark: "KS", logo: "/logos/kuaishou.png",
     title: text("Kuaishou source downloader", "快手素材下载"), shortTitle: text("Kuaishou", "快手"),
     description: text("Prepare creator-authorized media from supported public Kuaishou links.", "从受支持的快手公开链接获取已获授权的创作素材。"),
     seoDescription: text("A dedicated Kuaishou public source downloader for authorized creator workflows.", "面向已授权创作流程的快手公开素材专属下载工具。"),
@@ -187,7 +189,7 @@ export const tools: ToolDefinition[] = [
     tags: [text("Inpainting", "智能修复"), text("Region select", "区域框选")]
   },
   {
-    id: "gemini-watermark", category: "image", status: "planned", path: "/image/gemini-watermark-remover", mark: "GW",
+    id: "gemini-watermark", category: "image", status: "planned", path: "/image/gemini-watermark-remover", mark: "GW", logo: "/logos/flow.png",
     title: text("Gemini image watermark remover", "Gemini 图片水印清理"), shortTitle: text("Gemini watermark", "Gemini 水印清理"),
     description: text("A browser-first workflow for cleaning the visible Gemini mark from images you created.", "在浏览器中清理您自行创作图片上的可见 Gemini 标记。"),
     seoDescription: text("A dedicated Gemini visible image watermark cleanup tool for authorized content.", "面向已授权内容的 Gemini 可见图片水印专属清理工具。"),

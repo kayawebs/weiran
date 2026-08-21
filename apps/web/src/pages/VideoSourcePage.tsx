@@ -68,7 +68,7 @@ export function VideoSourcePage() {
       <section className="tool-workspace">
         <form className="workspace-panel" onSubmit={submit}>
           <div className="step-heading"><span>01</span><div><h2>{copy.video.platformTitle}</h2><p>{copy.video.platformHint}</p></div></div>
-          <label className="platform-option selected"><span className="platform-logo">D</span><span><strong>Dola</strong><small>{copy.video.publicLinks}</small></span><i>{copy.video.selected}</i></label>
+          <label className="platform-option selected"><span className="platform-logo has-logo"><img src="/logos/dola.png" alt="" /></span><span><strong>Dola</strong><small>{copy.video.publicLinks}</small></span><i>{copy.video.selected}</i></label>
           <div className="form-divider" />
           <div className="step-heading"><span>02</span><div><h2>{copy.video.urlTitle}</h2><p>{copy.video.urlHint}</p></div></div>
           <label className="field-label" htmlFor="dola-url">{copy.video.fieldLabel}</label>

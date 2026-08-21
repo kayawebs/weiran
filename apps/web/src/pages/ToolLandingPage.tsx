@@ -4,6 +4,7 @@ import { categoryById, localize, toolByPath, toolsByCategory } from "../catalog/
 import { CatalogToolCard } from "../components/CatalogToolCard";
 import { PageIntro } from "../components/PageIntro";
 import { Seo } from "../components/Seo";
+import { ToolMark } from "../components/ToolMark";
 import { siteCopy } from "../i18n/siteCopy";
 
 export function ToolLandingPage() {
@@ -18,7 +19,7 @@ export function ToolLandingPage() {
       <Seo title={localize(tool.title)} description={localize(tool.seoDescription)} path={tool.path} noIndex={tool.status !== "live"} />
       <PageIntro eyebrow={`${localize(category.eyebrow)} · ${tool.mark}`} title={localize(tool.title)} description={localize(tool.description)} aside={<span className="platform-chip planned-chip"><i /> {siteCopy.planned.badge}</span>} />
       <section className="planned-workspace">
-        <div className="planned-workspace-mark" aria-hidden="true">{tool.mark}</div>
+        <ToolMark className="planned-workspace-mark" tool={tool} />
         <div>
           <p className="section-label">{siteCopy.planned.eyebrow}</p>
           <h2>{siteCopy.planned.title}</h2>
