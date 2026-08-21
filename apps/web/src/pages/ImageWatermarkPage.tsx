@@ -1,7 +1,9 @@
 import { type ChangeEvent, type PointerEvent, useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { AdSlot } from "../ads/AdSlot";
 import { api, ApiError } from "../api";
 import { PageIntro } from "../components/PageIntro";
+import { Seo } from "../components/Seo";
 import { copy } from "../i18n/copy";
 import type { WatermarkRegion } from "../types";
 
@@ -73,7 +75,9 @@ export function ImageWatermarkPage() {
 
   return (
     <>
+      <Seo title={copy.image.title} description={copy.image.description} path="/image/watermark-remover" />
       <PageIntro eyebrow={copy.image.eyebrow} title={copy.image.title} description={copy.image.description} aside={<span className="large-number">1×<br /><small>{copy.image.limit}</small></span>} />
+      <AdSlot placement="tool-top" />
       <section className="image-workspace">
         <div className="image-stage-panel">
           <div className="step-heading"><span>01</span><div><h2>{copy.image.uploadTitle}</h2><p>{copy.image.uploadHint}</p></div></div>
@@ -100,6 +104,7 @@ export function ImageWatermarkPage() {
           <p className="fine-print">{copy.image.privacy}</p>
         </aside>
       </section>
+      <AdSlot placement="tool-bottom" />
     </>
   );
 }

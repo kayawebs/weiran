@@ -1,30 +1,38 @@
-import { PageIntro } from "../components/PageIntro";
-import { ToolCard } from "../components/ToolCard";
+import { useState } from "react";
 import { AdSlot } from "../ads/AdSlot";
-import { copy } from "../i18n/copy";
+import { localize, toolCategories, toolsByCategory } from "../catalog/tools";
+import { CatalogToolCard } from "../components/CatalogToolCard";
+import { PageIntro } from "../components/PageIntro";
+import { Seo } from "../components/Seo";
+import { siteCopy } from "../i18n/siteCopy";
 
 export function ToolsPage() {
+  const [query, setQuery] = useState("");
+  const normalized = query.trim().toLocaleLowerCase();
+  const matches = (value: string) => value.toLocaleLowerCase().includes(normalized);
+  const filteredCategories = toolCategories.map((category) => ({
+    category,
+    tools: toolsByCategory(category.id).filter((tool) => !normalized || [localize(tool.title), localize(tool.description), ...tool.tags.map(localize)].some(matches))
+  })).filter((group) => group.tools.length > 0);
+
   return (
     <>
-      <PageIntro eyebrow={copy.tools.eyebrow} title={copy.tools.title} description={copy.tools.description} aside={<span className="large-number">02<br /><small>{copy.tools.liveCount}</small></span>} />
-      <section className="section category-section">
-        <div className="category-title"><span>01</span><div><h2>{copy.tools.categories[0].title}</h2><p>{copy.tools.categories[0].description}</p></div></div>
-        <div className="tool-list">
-          <ToolCard index="01" eyebrow={copy.tools.categories[0].tools[0].meta} title={copy.tools.categories[0].tools[0].title} description={copy.tools.categories[0].tools[0].description} to="/tools/video" badge={copy.common.live} />
-          <ToolCard index="02" eyebrow={copy.tools.categories[0].tools[1].meta} title={copy.tools.categories[0].tools[1].title} description={copy.tools.categories[0].tools[1].description} to="/tools/image" badge={copy.common.live} />
-        </div>
+      <Seo title={siteCopy.directory.title} description={siteCopy.directory.description} path="/tools" />
+      <PageIntro eyebrow={siteCopy.directory.eyebrow} title={siteCopy.directory.title} description={siteCopy.directory.description} aside={<span className="large-number">{String(filteredCategories.reduce((count, group) => count + group.tools.length, 0)).padStart(2, "0")}<br /><small>{siteCopy.nav.all}</small></span>} />
+      <section className="directory-search section-narrow">
+        <label htmlFor="tool-search">{siteCopy.directory.searchLabel}</label>
+        <div className="directory-search-field"><span>⌕</span><input id="tool-search" type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder={siteCopy.directory.searchPlaceholder} /></div>
       </section>
-      <section className="section category-section">
-        <div className="category-title"><span>02</span><div><h2>{copy.tools.categories[1].title}</h2><p>{copy.tools.categories[1].description}</p></div></div>
-        <div className="tool-list"><ToolCard index="03" eyebrow={copy.tools.categories[1].tools[0].meta} title={copy.tools.categories[1].tools[0].title} description={copy.tools.categories[1].tools[0].description} badge={copy.common.planned} /></div>
-      </section>
-      <section className="section category-section">
-        <div className="category-title"><span>03</span><div><h2>{copy.tools.categories[2].title}</h2><p>{copy.tools.categories[2].description}</p></div></div>
-        <div className="tool-list compact-tools">
-          {copy.tools.categories[2].tools.map((tool, index) => <ToolCard key={tool.title} index={`0${index + 4}`} eyebrow={tool.meta} title={tool.title} description={tool.description} badge={copy.common.planned} />)}
-        </div>
-      </section>
-      <AdSlot placement="tools-inline" />
+      {filteredCategories.length > 0 ? filteredCategories.map(({ category, tools: categoryTools }) => (
+        <section className="section directory-category" key={category.id}>
+          <header className="directory-category-header">
+            <span>{category.index}</span>
+            <div><p className="section-label">{localize(category.eyebrow)}</p><h2>{localize(category.title)}</h2><p>{localize(category.description)}</p></div>
+          </header>
+          <div className="catalog-tool-grid">{categoryTools.map((tool, index) => <CatalogToolCard tool={tool} index={index} key={tool.id} />)}</div>
+        </section>
+      )) : <section className="empty-directory"><p>{siteCopy.directory.empty}</p><button className="text-button" type="button" onClick={() => setQuery("")}>{siteCopy.directory.clear}</button></section>}
+      <AdSlot placement="directory-inline" />
     </>
   );
 }

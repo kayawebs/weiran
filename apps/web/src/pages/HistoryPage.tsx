@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { api } from "../api";
 import { PageIntro } from "../components/PageIntro";
+import { Seo } from "../components/Seo";
 import { marketConfig } from "../config/market";
 import { copy } from "../i18n/copy";
 import type { Task } from "../types";
@@ -14,6 +15,7 @@ export function HistoryPage() {
 
   return (
     <>
+      <Seo title={copy.history.title} description={copy.history.description} path="/history" noIndex />
       <PageIntro eyebrow={copy.history.eyebrow} title={copy.history.title} description={copy.history.description} aside={<span className="large-number">{tasks.length.toString().padStart(2, "0")}<br /><small>{copy.history.recent}</small></span>} />
       <section className="section history-section">
         {loading && <p className="empty-state">{copy.history.loading}</p>}

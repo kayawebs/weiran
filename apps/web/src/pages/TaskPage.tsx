@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { AdSlot } from "../ads/AdSlot";
+import { Seo } from "../components/Seo";
 import { copy } from "../i18n/copy";
 import type { ResultFile, Task } from "../types";
 
@@ -22,7 +23,7 @@ export function TaskPage() {
         const legacyVideoUrl = typeof next.input.url === "string" ? next.input.url : null;
         if (next.taskType === "VIDEO_WATERMARK_REMOVE" && next.status !== "SUCCESS" && legacyVideoUrl) {
           const query = new URLSearchParams({ url: legacyVideoUrl, scan: "1" });
-          navigate(`/tools/video?${query.toString()}`, { replace: true });
+          navigate(`/download/dola?${query.toString()}`, { replace: true });
           return;
         }
         setTask(next);
@@ -44,6 +45,7 @@ export function TaskPage() {
   const status = task?.status ?? "PENDING";
   return (
     <section className="task-page">
+      <Seo title={copy.task.labels[status]} description={copy.task.processing} path={`/tasks/${taskId}`} noIndex />
       <div className={`status-orb ${status.toLowerCase()}`}><span>{status === "SUCCESS" ? "✓" : status === "FAILED" ? "!" : ""}</span></div>
       <p className="eyebrow">{copy.task.task} {taskId.slice(0, 8).toUpperCase()}</p>
       <h1>{copy.task.labels[status]}</h1>

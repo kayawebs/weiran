@@ -77,10 +77,14 @@ services:
       args:
         VITE_API_BASE_URL: /api
         VITE_MARKET: ${DEPLOYMENT_MARKET:-global}
+        VITE_PUBLIC_SITE_URL: ${WEB_PUBLIC_SITE_URL:-https://weiran.art}
         VITE_WEB_AD_PROVIDER: ${WEB_AD_PROVIDER:-none}
+        VITE_ADSENSE_CLIENT_ID: ${WEB_ADSENSE_CLIENT_ID:-}
         VITE_AD_SLOT_HOME: ${WEB_AD_SLOT_HOME:-}
         VITE_AD_SLOT_TOOLS: ${WEB_AD_SLOT_TOOLS:-}
         VITE_AD_SLOT_RESULT: ${WEB_AD_SLOT_RESULT:-}
+        VITE_AD_SLOT_TOOL_TOP: ${WEB_AD_SLOT_TOOL_TOP:-}
+        VITE_AD_SLOT_TOOL_BOTTOM: ${WEB_AD_SLOT_TOOL_BOTTOM:-}
     ports: ["127.0.0.1:${WEB_PORT:-8080}:80"]
     depends_on:
       api:

@@ -12,7 +12,7 @@
 flowchart TB
   subgraph clients[产品入口]
     MP[微信小程序：视频图片去水印]
-    WEB[Web App：后续]
+    WEB[Web App：中英文工具站]
     API_CLIENT[合作方 API：后续]
   end
 
@@ -45,7 +45,7 @@ flowchart TB
 
 ### 关键原则
 
-- **Task-first：** 所有耗时工作都以任务进入队列，不在 HTTP 请求中执行。
+- **Task-first：** 耗时、需要持久化或媒体计算的工作以任务进入队列；只返回来源元数据和短票据的快速 Extractor 可以同步执行。
 - **资产优先：** 上传件和处理结果都作为 `media_assets` 管理，任务只引用资产 ID。
 - **产品无关：** 小程序、Web 和未来工具均调用同一套 Task API。
 - **插件化扩展：** 新工具新增 task handler；新内容平台新增 extractor，不修改既有 API。
@@ -206,6 +206,8 @@ apps/miniprogram/
 ```
 
 小程序使用“首页 / 工具 / 我的”三 Tab 架构：首页展示平台定位、常用工具与分类；工具页展示完整工具目录；我的页聚合历史任务与文件记录。它不包含新闻、AI 情报、社区、会员或支付入口；AI 情报媒体应作为公众号、网站、短视频等独立系统运营。
+
+Web 采用“首页 + 全部工具 + 四大工作区 + 专属工具页”的站点结构。素材下载、图片、视频、创作辅助是同级能力；每个 AI 应用可以拥有专属 URL，但只有通过生产验证的 Connector 才显示可操作表单。完整路由、SEO 与广告位规则见 `docs/web-information-architecture.md`。
 
 ## Source Download 扩展契约
 

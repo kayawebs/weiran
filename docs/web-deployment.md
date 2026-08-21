@@ -28,7 +28,14 @@ Web 只接收公开的区域、API 与广告位配置。项目已经提供 `apps
 ```dotenv
 VITE_API_BASE_URL=/api
 VITE_MARKET=cn|global
+VITE_PUBLIC_SITE_URL=https://实际域名
 VITE_WEB_AD_PROVIDER=none
+VITE_ADSENSE_CLIENT_ID=
+VITE_AD_SLOT_HOME=
+VITE_AD_SLOT_TOOLS=
+VITE_AD_SLOT_RESULT=
+VITE_AD_SLOT_TOOL_TOP=
+VITE_AD_SLOT_TOOL_BOTTOM=
 ```
 
 正式 Docker 镜像也通过公开构建参数将它设为 `/api`。Web 不需要、也不得配置微信密钥、JWT 密钥、OSS AccessKey 或数据库密码。Vite 会把所有 `VITE_*` 值编译进浏览器 JavaScript，因此只能在这里放允许任何访客看到的配置。
@@ -58,7 +65,7 @@ OSS_ACCESS_KEY_SECRET=<RAM用户AccessKeySecret>
 OSS_INTERNAL_ENDPOINT=https://oss-cn-hangzhou-internal.aliyuncs.com
 ```
 
-区域服务器环境文件会挂载给迁移、API 和 Worker；Compose 只把明确列出的 `WEB_AD_*` 与 `DEPLOYMENT_MARKET` 作为公开构建参数交给 Web。Web 容器不会读取其他变量，服务器秘密不会进入前端构建产物。Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。
+区域服务器环境文件会挂载给迁移、API 和 Worker；Compose 只把明确列出的 `WEB_PUBLIC_SITE_URL`、`WEB_AD_*` 与 `DEPLOYMENT_MARKET` 作为公开构建参数交给 Web。Web 容器不会读取其他变量，服务器秘密不会进入前端构建产物。Web 与 API 同域时，`CORS_ORIGINS` 保持空值即可。
 
 ## 4. OSS 设置
 

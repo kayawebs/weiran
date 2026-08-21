@@ -4,21 +4,21 @@
 
 项目采用单主干双区域构建：国内部署中文 Web + 微信小程序，海外部署英文 Web；两地使用相同后端代码，但数据库、Redis、OSS 和用户身份独立。完整决策见 [双区域架构](docs/multi-region-architecture.md)。
 
-详细的架构、服务拆分、数据模型、接口、状态机、Worker 和小程序结构见 [架构设计](docs/architecture.md)。
+详细的架构、服务拆分、数据模型、接口、状态机、Worker 和小程序结构见 [架构设计](docs/architecture.md)。新版 Web 信息架构、竞品分析和广告边界见 [Web 站点地图](docs/web-information-architecture.md)。
 
 ## 已实现范围
 
 - 统一异步任务模型：`SOURCE_DOWNLOAD`、`IMAGE_WATERMARK_REMOVE`、`VIDEO_WATERMARK_REMOVE`
 - Docker PostgreSQL 任务/资产/事件审计模型，Docker Redis + BullMQ 重试队列，阿里云 OSS 私有存储
 - 图片水印区域：OpenCV inpaint 或模糊处理；视频按来源平台选择解析策略
-- Dola 平台：粘贴公开 Thread URL，同步发现全部视频并返回短期加密预览/下载链接；扫描阶段不下载、不写 OSS、不重编码
+- Dola 平台：粘贴公开 Thread URL，同步发现全部视频并返回 Redis 随机短票据预览/下载链接；扫描阶段不下载、不写 OSS、不重编码
 - 受控的 HTTPS 素材解析与下载（来源/媒体主机白名单、私有网络阻断、重定向与体积限制）
 - 可插拔 `SourceExtractor` 与平台定义，后续可继续增加内容平台 connector
 - 原生微信小程序：首页、工具分类、平台选择、URL 提交、多视频结果预览与保存
-- 中英文响应式 Web App：首页、工具目录、Dola URL、图片拖拽框选、任务进度、结果下载与浏览器历史，适配 PC 和 Mobile
+- 中英文响应式 Web App：四类工具地图、平台专属 URL、目录搜索、Dola 解析、图片拖拽框选、任务结果和浏览器历史，适配 PC 和 Mobile
 - 微信登录：`wx.login → code2Session → JWT`；用户 ID 不再由客户端请求头提供
 - Web 匿名登录：服务端签发受限 JWT；API 跨域白名单与全局限流可通过环境变量配置
-- 区域构建：`cn` 输出中文 Web，`global` 输出英文 Web；Web 与小程序均预留独立广告平台适配层
+- 区域构建：`cn` 输出中文 Web，`global` 输出英文 Web；Global 可配置 AdSense，国内继续通过独立广告 Adapter 接入本地平台
 - Docker Compose 启动 PostgreSQL、Redis、数据库迁移、API、Worker 与 Web/Nginx；对象存储使用阿里云 OSS
 
 ## 本地启动
@@ -87,12 +87,17 @@ POST /v1/sources/resolve
 
 网页入口位于 `apps/web`，路由包括：
 
-- `/`：未然Lab 区域语言品牌首页与平台工作流
-- `/tools`：素材清理、素材获取、创作辅助分类
-- `/tools/video`：选择 Dola、扫描公开 Thread，并在同页预览或下载全部源视频
-- `/tools/image`：上传图片并用鼠标或触控拖拽水印区域
+- `/`：未然Lab 品牌首页、四大工作区和当前可用工具
+- `/tools`：可搜索的完整工具目录，明确区分可用与开发中
+- `/download`、`/image`、`/video`、`/creator`：素材下载、图片、视频、创作辅助工作区
+- `/download/dola`：扫描公开 Dola Thread，并在同页预览或下载全部源视频
+- `/download/:platform`：每个 AI 应用的稳定专属页面；Extractor 未上线前显示开发中并设置 `noindex`
+- `/image/watermark-remover`：上传图片并用鼠标或触控拖拽水印区域
 - `/tasks/:id`：轮询任务、预览并下载全部结果
 - `/history`：当前浏览器匿名身份下的最近任务
+- `/privacy`、`/terms`、`/disclaimer`：广告与公开运营所需的基础规则页面
+
+生产构建会按区域域名自动生成 `sitemap.xml` 与 `robots.txt`。旧路由 `/tools/video` 和 `/tools/image` 保留为重定向，避免已有链接失效。
 
 Web 首次调用后端时自动获取匿名 JWT，JWT 由后端签发，Web 不持有签名密钥。任务历史绑定该浏览器中的令牌；清除站点数据后不会自动找回旧匿名身份，后续可在不改变 Task API 的前提下增加邮箱或 OAuth 登录。
 
@@ -114,7 +119,7 @@ npm run build:web:cn
 npm run build:web:global
 ```
 
-服务器使用 `deploy/cn.env.example` 或 `deploy/global.env.example` 作为模板。Global 服务器运行 `./deploy/init-global-env.sh` 即可一次性生成 JWT 与 PostgreSQL 强密码；脚本不会覆盖已有配置，之后只需填写 `deploy/global.env` 的 `OSS_*` 字段。不要创建长期 `cn` / `global` Git 分支；区域差异通过配置、文案目录和广告 Adapter 管理。
+服务器使用 `deploy/cn.env.example` 或 `deploy/global.env.example` 作为模板。Global 服务器运行 `./deploy/init-global-env.sh` 即可一次性生成 JWT 与 PostgreSQL 强密码；脚本不会覆盖已有配置，之后只需填写 `deploy/global.env` 的 `OSS_*` 字段。广告未开通时保持 `WEB_AD_PROVIDER=none`；AdSense 审核通过后设置 `WEB_AD_PROVIDER=adsense`、公开的 Client ID 与各广告位 ID。不要创建长期 `cn` / `global` Git 分支；区域差异通过配置、文案目录和广告 Adapter 管理。
 
 ## 微信小程序
 

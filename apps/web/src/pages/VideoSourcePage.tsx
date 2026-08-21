@@ -1,7 +1,9 @@
 import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { AdSlot } from "../ads/AdSlot";
 import { api, apiMediaUrl, ApiError } from "../api";
 import { PageIntro } from "../components/PageIntro";
+import { Seo } from "../components/Seo";
 import { copy } from "../i18n/copy";
 import type { ResolvedSource } from "../types";
 
@@ -60,7 +62,9 @@ export function VideoSourcePage() {
 
   return (
     <>
+      <Seo title={copy.video.title} description={copy.video.description} path="/download/dola" />
       <PageIntro eyebrow={copy.video.eyebrow} title={copy.video.title} description={copy.video.description} aside={<span className="platform-chip"><i /> {copy.video.supported}</span>} />
+      <AdSlot placement="tool-top" />
       <section className="tool-workspace">
         <form className="workspace-panel" onSubmit={submit}>
           <div className="step-heading"><span>01</span><div><h2>{copy.video.platformTitle}</h2><p>{copy.video.platformHint}</p></div></div>
@@ -106,6 +110,7 @@ export function VideoSourcePage() {
             {previewId === video.id && <div className="source-preview"><video src={previewUrl} poster={coverUrl ?? undefined} controls playsInline preload="metadata" /></div>}
           </article>;
         })}</div>
+        <AdSlot placement="result-footer" />
       </section>}
     </>
   );

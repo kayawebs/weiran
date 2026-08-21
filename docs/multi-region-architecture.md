@@ -55,7 +55,7 @@ deploy/
   global.env.example         # 海外服务器模板
 ```
 
-页面不得直接判断广告平台，也不应在页面中判断 `cn/global`。页面只读取集中式文案并使用语义广告位，如 `home-footer`、`tools-inline`、`result-footer`。
+页面不得直接判断广告平台，也不应在页面中判断 `cn/global`。页面只读取集中式文案并使用语义广告位，如 `home-inline`、`directory-inline`、`tool-top`、`result-footer`、`tool-bottom`。
 
 ## Web 区域构建
 
@@ -94,8 +94,9 @@ Backend 使用同一份代码和镜像。`DEPLOYMENT_MARKET` 只处理真正的�
 
 - `none`：默认值，不渲染、不占位。
 - `house`：用于联调插槽的自有推广样式。
+- `adsense`：海外 Web 的 Google AdSense Adapter；只有同时配置公开 Client ID 与广告位 ID 时才加载 SDK。
 
-确定平台后，为国内 Web 和海外 Web 分别新增 Ad Adapter，例如各自负责加载 SDK、渲染广告、错误降级和用户同意状态。广告 Client ID、Slot ID 通常是公开值，可来自区域构建配置；平台服务端密钥必须放入后端，并通过专门的服务端接口使用。
+国内 Web 后续新增独立 Ad Adapter，负责加载对应 SDK、渲染广告、错误降级和用户同意状态。广告 Client ID、Slot ID 通常是公开值，可来自区域构建配置；平台服务端密钥必须放入后端，并通过专门的服务端接口使用。
 
 ### 微信小程序
 
