@@ -2,7 +2,9 @@ import { type FormEvent, useCallback, useEffect, useRef, useState } from "react"
 import { useSearchParams } from "react-router-dom";
 import { AdSlot } from "../ads/AdSlot";
 import { api, apiMediaUrl, ApiError } from "../api";
+import { platformGuideFor } from "../catalog/platformGuides";
 import { PageIntro } from "../components/PageIntro";
+import { PlatformLinkGuide } from "../components/PlatformLinkGuide";
 import { Seo } from "../components/Seo";
 import { copy } from "../i18n/copy";
 import type { ResolvedSource } from "../types";
@@ -20,6 +22,7 @@ function qualityLabel(quality: string, height: number | null): string {
 }
 
 export function VideoSourcePage() {
+  const guide = platformGuideFor("dola-video");
   const [searchParams] = useSearchParams();
   const incomingUrl = searchParams.get("url") ?? "";
   const shouldAutoScan = searchParams.get("scan") === "1";
@@ -71,7 +74,7 @@ export function VideoSourcePage() {
           <label className="platform-option selected"><span className="platform-logo has-logo"><img src="/logos/dola.png" alt="" /></span><span><strong>Dola</strong><small>{copy.video.publicLinks}</small></span><i>{copy.video.selected}</i></label>
           <div className="form-divider" />
           <div className="step-heading"><span>02</span><div><h2>{copy.video.urlTitle}</h2><p>{copy.video.urlHint}</p></div></div>
-          <label className="field-label" htmlFor="dola-url">{copy.video.fieldLabel}</label>
+          <div className="field-label-row"><label className="field-label" htmlFor="dola-url">{copy.video.fieldLabel}</label><a href="#copy-link-guide">{copy.video.needLink} ↓</a></div>
           <div className="url-field"><input id="dola-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://www.dola.com/thread/..." autoComplete="url" /><span>URL</span></div>
           {error && <p className="form-error" role="alert">{error}</p>}
           <button className="primary-action full-button" type="submit" disabled={submitting}>{submitting ? copy.video.starting : copy.video.submit}<span>→</span></button>
@@ -112,6 +115,7 @@ export function VideoSourcePage() {
         })}</div>
         <AdSlot placement="result-footer" />
       </section>}
+      {guide && <PlatformLinkGuide guide={guide} />}
     </>
   );
 }

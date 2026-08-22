@@ -4,6 +4,7 @@ import { categoryById, localize, toolsByCategory, type ToolCategoryId } from "..
 import { CatalogToolCard } from "../components/CatalogToolCard";
 import { PageIntro } from "../components/PageIntro";
 import { Seo } from "../components/Seo";
+import { SourceLinkRouter } from "../components/SourceLinkRouter";
 import { siteCopy } from "../i18n/siteCopy";
 
 export function CategoryPage({ categoryId }: { categoryId: ToolCategoryId }) {
@@ -16,6 +17,7 @@ export function CategoryPage({ categoryId }: { categoryId: ToolCategoryId }) {
     <>
       <Seo title={localize(category.title)} description={localize(category.description)} path={category.path} noIndex={available.length === 0} />
       <PageIntro eyebrow={localize(category.eyebrow)} title={localize(category.title)} description={localize(category.description)} aside={<div className="category-counts"><strong>{available.length}</strong><span>{siteCopy.category.live}</span><strong>{planned.length}</strong><span>{siteCopy.category.planned}</span></div>} />
+      {categoryId === "download" && <SourceLinkRouter />}
       {available.length > 0 && <section className="section category-directory-block">
         <div className="section-heading"><div><p className="section-label">{siteCopy.directory.live}</p><h2>{siteCopy.category.availableTitle}</h2></div></div>
         <div className="catalog-tool-grid">{available.map((tool, index) => <CatalogToolCard tool={tool} index={index} key={tool.id} />)}</div>

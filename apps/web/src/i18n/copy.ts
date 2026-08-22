@@ -31,7 +31,7 @@ const en = {
   video: {
     eyebrow: "VIDEO · DOLA", title: "Get the clean source.", description: "Paste a public Dola thread URL. We resolve every available original video and turn it into a secure download.", supported: "DOLA SUPPORTED",
     platformTitle: "Choose a platform", platformHint: "More source platforms will plug into the same workflow.", publicLinks: "Public thread links", selected: "Selected",
-    urlTitle: "Paste the thread URL", urlHint: "One thread can contain multiple videos.", fieldLabel: "Public Dola URL", invalid: "Paste a valid public Dola thread URL.", startError: "We could not scan this thread right now.", starting: "Scanning thread…", submit: "Find source videos",
+    urlTitle: "Paste the thread URL", urlHint: "One thread can contain multiple videos.", fieldLabel: "Public Dola URL", needLink: "How do I get this link?", invalid: "Paste a valid public Dola thread URL.", startError: "We could not scan this thread right now.", starting: "Scanning thread…", submit: "Find source videos",
     how: "HOW IT WORKS", steps: [
       { title: "Resolve the thread", description: "Identify every video attached to the public post." },
       { title: "Show results", description: "List the clean source files without waiting for an upload." },
@@ -90,7 +90,7 @@ const zh: typeof en = {
   video: {
     eyebrow: "视频 · DOLA", title: "获取无水印源视频。", description: "粘贴公开 Dola Thread 链接，我们会解析其中全部原始视频并生成安全下载地址。", supported: "已支持 DOLA",
     platformTitle: "选择平台", platformHint: "未来平台将继续接入同一套处理流程。", publicLinks: "公开 Thread 链接", selected: "已选择",
-    urlTitle: "粘贴链接", urlHint: "一个 Thread 可能包含多个视频。", fieldLabel: "Dola 公开链接", invalid: "请粘贴有效的 Dola 公开 Thread 链接。", startError: "暂时无法解析该 Thread，请稍后重试。", starting: "正在扫描 Thread…", submit: "查找源视频",
+    urlTitle: "粘贴链接", urlHint: "一个 Thread 可能包含多个视频。", fieldLabel: "Dola 公开链接", needLink: "这个链接在哪里复制？", invalid: "请粘贴有效的 Dola 公开 Thread 链接。", startError: "暂时无法解析该 Thread，请稍后重试。", starting: "正在扫描 Thread…", submit: "查找源视频",
     how: "处理流程", steps: [
       { title: "解析 Thread", description: "识别公开内容中包含的全部视频。" },
       { title: "展示结果", description: "无需等待上传，直接列出可用的无水印源视频。" },

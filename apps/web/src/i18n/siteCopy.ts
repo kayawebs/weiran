@@ -34,6 +34,24 @@ const en = {
     availableTitle: "Available now",
     roadmapTitle: "On the roadmap"
   },
+  sourceRouter: {
+    eyebrow: "PASTE ANY SUPPORTED LINK",
+    title: "Start with the link you already have.",
+    description: "We identify the platform and take you to its dedicated workflow and copy-link guide.",
+    label: "Public share link or copied share text",
+    placeholder: "Paste a Dola, Jimeng, Douyin, TikTok, Xiaohongshu… link",
+    submit: "Identify platform",
+    hint: "Live downloads are clearly separated from connectors still in development.",
+    invalid: "Paste a complete http or https link.",
+    unsupported: "We do not recognize this platform yet. Browse the platform list below."
+  },
+  guide: {
+    eyebrow: "COPY-LINK GUIDE",
+    time: "ABOUT 30 SECONDS",
+    formats: "EXPECTED LINK FORMATS",
+    checks: "BEFORE YOU PASTE",
+    legal: "Only download or process media you own or have permission to use. Platform interfaces and link formats can change."
+  },
   planned: {
     eyebrow: "DEDICATED TOOL PAGE",
     badge: "IN DEVELOPMENT",
@@ -89,6 +107,24 @@ const zh: typeof en = {
     planned: "项开发中",
     availableTitle: "当前可用",
     roadmapTitle: "后续规划"
+  },
+  sourceRouter: {
+    eyebrow: "粘贴任意已支持链接",
+    title: "从您已经复制的链接开始。",
+    description: "系统会识别来源平台，并带您进入对应的专属工作区和链接获取指引。",
+    label: "公开分享链接或复制的整段分享文案",
+    placeholder: "粘贴 Dola、即梦、抖音、TikTok、小红书等链接",
+    submit: "识别平台",
+    hint: "已上线下载能力与仍在开发的连接器会明确区分。",
+    invalid: "请粘贴完整的 http 或 https 链接。",
+    unsupported: "暂时无法识别该平台，请从下方平台列表中选择。"
+  },
+  guide: {
+    eyebrow: "链接获取指引",
+    time: "约 30 秒",
+    formats: "常见链接格式",
+    checks: "粘贴前请检查",
+    legal: "请仅下载或处理您拥有或已获授权使用的素材。平台界面和链接格式可能随时调整。"
   },
   planned: {
     eyebrow: "专属工具页面",
