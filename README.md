@@ -11,7 +11,7 @@
 - 统一异步任务模型：`SOURCE_DOWNLOAD`、`IMAGE_WATERMARK_REMOVE`、`VIDEO_WATERMARK_REMOVE`
 - Docker PostgreSQL 任务/资产/事件审计模型，Docker Redis + BullMQ 重试队列，阿里云 OSS 私有存储
 - 图片水印区域：OpenCV inpaint 或模糊处理；视频按来源平台选择解析策略
-- Dola、Dreamina / CapCut、即梦 / Seedance：粘贴公开作品链接，同步解析原始视频并返回 Redis 随机短票据预览/下载链接；扫描阶段不下载、不写 OSS、不重编码
+- Dola、Dreamina / CapCut、即梦 / Seedance、抖音：粘贴公开作品链接；抖音还支持整段分享文案。后端同步解析无水印视频并返回 Redis 随机短票据预览/下载链接，扫描阶段不下载、不写 OSS、不重编码
 - 受控的 HTTPS 素材解析与下载（来源/媒体主机白名单、私有网络阻断、重定向与体积限制）
 - 可插拔 `SourceExtractor` 与平台定义，后续可继续增加内容平台 connector
 - 原生微信小程序：首页、工具分类、平台选择、URL 提交、多视频结果预览与保存
@@ -69,7 +69,7 @@ POST /v1/tasks
 }
 ```
 
-平台视频原画解析（`platform` 可取 `dola`、`dreamina` 或 `jimeng`）：
+平台视频原画解析（`platform` 可取 `dola`、`dreamina`、`jimeng` 或 `douyin`）：
 
 ```json
 POST /v1/sources/resolve
@@ -80,6 +80,8 @@ POST /v1/sources/resolve
 ```
 
 接口直接返回 `videoCount` 与 `videos[]`。每个视频包含短期 `previewPath` 和 `downloadPath`；浏览器只获得随机短票据，完整源 CDN URL 与请求头在 Redis 中保存 15 分钟。用户点击后由 `GET /v1/source-media/:ticket` 按需流式转发。图片去水印等耗时、需要持久化结果的操作仍返回 `202` Task，并在成功后通过 OSS 短期链接交付。
+
+抖音可直接提交 App 复制出的整段分享内容。结果中的 `downloads[]` 还会列出真实存在的备用画质与原始 MP3；解析器只采用公开详情中的播放流，不使用带水印的下载地址。
 
 开发环境会默认创建本地测试用户。部署生产前，必须关闭 `ALLOW_INSECURE_DEV_AUTH` 并配置 JWT；国内部署还需要微信凭证与小程序合法域名。两地都要将 API CORS、OSS 跨域规则配置为各自的实际 HTTPS 域名。
 
@@ -93,6 +95,7 @@ POST /v1/sources/resolve
 - `/download/dola`：扫描公开 Dola Thread，并在同页预览或下载全部源视频
 - `/download/dreamina`：解析公开 Dreamina / CapCut AI Work Detail 原始视频
 - `/download/jimeng`：解析公开即梦 / Seedance 分享页或 Work Detail 原始视频
+- `/download/douyin`：从短链接、完整视频 URL 或整段复制文案提取抖音无水印视频、备用画质与原始 MP3
 - `/download/:platform`：每个 AI 应用的稳定专属页面；Extractor 未上线前显示开发中并设置 `noindex`
 - `/image/watermark-remover`：上传图片并用鼠标或触控拖拽水印区域
 - `/tasks/:id`：轮询任务、预览并下载全部结果
@@ -127,7 +130,7 @@ npm run build:web:global
 
 在微信开发者工具导入 `apps/miniprogram`。当前项目显示名为“未然Lab”，并已配置 AppID `wxa5c763c97869a2aa`；小程序原始 ID 为 `gh_476d3d7733d7`。将 [app.js](apps/miniprogram/app.js) 中 `apiBaseUrl` 改为已备案的 HTTPS API 域名，并在小程序后台添加 request 合法域名，以及 OSS 域名的 uploadFile、downloadFile 合法域名。
 
-小程序采用“首页 / 工具 / 我的”三 Tab 架构：首页呈现未然Lab 的 AI 创作者工具平台定位和分类；图片、视频去水印属于“素材处理”分类。视频页不再上传视频或填写水印坐标，而是选择平台并粘贴公开 URL；当前启用 Dola、Dreamina / CapCut 与即梦 / Seedance，后台按平台返回一个或多个原始视频。素材获取、字幕、封面、格式转换等能力以未启用工具预留，不包含资讯、AI 情报、社区、会员或支付。AI 情报媒体应作为公众号、网站和短视频渠道的独立系统运营。用户应只处理拥有或已获授权使用的媒体；各来源 connector 还应遵守相应平台的条款与版权限制。
+小程序采用“首页 / 工具 / 我的”三 Tab 架构：首页呈现未然Lab 的 AI 创作者工具平台定位和分类；图片、视频去水印属于“素材处理”分类。视频页不再上传视频或填写水印坐标，而是选择平台并粘贴公开 URL；当前启用 Dola、Dreamina / CapCut、即梦 / Seedance 与抖音，抖音支持直接粘贴整段分享文案，后台按平台返回一个或多个原始视频。素材获取、字幕、封面、格式转换等能力以未启用工具预留，不包含资讯、AI 情报、社区、会员或支付。AI 情报媒体应作为公众号、网站和短视频渠道的独立系统运营。用户应只处理拥有或已获授权使用的媒体；各来源 connector 还应遵守相应平台的条款与版权限制。
 
 ## 扩展新工具
 

@@ -1,6 +1,6 @@
 import { marketConfig } from "../config/market";
 
-export type SourcePlatformId = "dola" | "dreamina" | "jimeng";
+export type SourcePlatformId = "dola" | "dreamina" | "jimeng" | "douyin";
 
 type LocalizedText = { en: string; "zh-CN": string };
 const text = (en: string, zh: string): LocalizedText => ({ en, "zh-CN": zh });
@@ -21,6 +21,7 @@ type SourcePlatformDefinition = {
   urlHint: LocalizedText;
   fieldLabel: LocalizedText;
   invalid: LocalizedText;
+  acceptsShareText?: boolean;
   isValidUrl: (url: URL) => boolean;
 };
 
@@ -91,6 +92,25 @@ const definitions: Record<SourcePlatformId, SourcePlatformDefinition> = {
     fieldLabel: text("Jimeng public URL", "即梦公开链接"),
     invalid: text("Paste a valid public Jimeng /s/ share URL.", "请粘贴有效的即梦 /s/ 公开分享链接。"),
     isValidUrl: (url) => url.protocol === "https:" && hostIs(url, "jimeng.jianying.com") && /^(?:\/s\/[A-Za-z0-9_-]+|\/ai-tool\/work-detail\/[A-Za-z0-9_-]+)\/?$/.test(url.pathname)
+  },
+  douyin: {
+    id: "douyin",
+    toolId: "douyin-video",
+    path: "/download/douyin",
+    name: "Douyin",
+    mark: "DY",
+    logo: "/logos/douyin.png",
+    placeholder: "6.64 复制打开抖音…… https://v.douyin.com/...",
+    eyebrow: text("VIDEO · DOUYIN", "视频 · 抖音"),
+    title: text("Download a clean Douyin video.", "下载抖音无水印视频。"),
+    description: text("Paste a public Douyin link or the complete copied share text to get the clean video and original audio.", "粘贴抖音公开视频链接或完整分享文案，获取无水印视频和原始音频。"),
+    supported: text("DOUYIN SUPPORTED", "已支持抖音"),
+    urlTitle: text("Paste your Douyin share text", "粘贴抖音分享内容"),
+    urlHint: text("Short links and complete copied share messages are both supported.", "支持 v.douyin.com 短链接，也支持直接粘贴整段分享文案。"),
+    fieldLabel: text("Douyin link or share text", "抖音链接或分享文案"),
+    invalid: text("Paste Douyin share text containing a public video link.", "请粘贴包含公开视频链接的抖音分享文案。"),
+    acceptsShareText: true,
+    isValidUrl: (url) => url.protocol === "https:" && ["douyin.com", "www.douyin.com", "v.douyin.com", "www.iesdouyin.com"].includes(url.hostname.toLowerCase())
   }
 };
 

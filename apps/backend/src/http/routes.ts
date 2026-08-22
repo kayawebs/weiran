@@ -6,7 +6,7 @@ import { env } from "../config/env.js";
 import { pool } from "../db/client.js";
 import { requireAuthentication } from "./auth.js";
 import { AuthService, AuthenticationError } from "../modules/auth/auth.service.js";
-import { assertPublicHttpsUrl, safeSourceRequestHeaders } from "../modules/downloader/downloader.service.js";
+import { assertPublicHttpsUrl, fetchPublicHttps, safeSourceRequestHeaders } from "../modules/downloader/downloader.service.js";
 import { getVideoPlatform, listVideoPlatforms, matchesVideoPlatformUrl, videoPlatformIds } from "../modules/platform/video-platforms.js";
 import { SourceResolutionService } from "../modules/source/source-resolution.service.js";
 import { SourceTicketService } from "../modules/source/source-ticket.service.js";
@@ -30,7 +30,7 @@ const wechatLoginSchema = z.object({ code: z.string().min(1).max(512) });
 const taskListQuery = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const sourceResolveSchema = z.object({
   platform: z.enum(videoPlatformIds),
-  url: z.string().url()
+  url: z.string().trim().min(1).max(4096)
 }).superRefine((input, context) => {
   if (!matchesVideoPlatformUrl(input.platform, input.url)) {
     context.addIssue({
@@ -53,6 +53,8 @@ const sourceErrorStatus: Record<string, number> = {
   SOURCE_NO_VIDEO: 404,
   INVALID_SOURCE_URL: 422,
   CLEAN_SOURCE_UNAVAILABLE: 422,
+  DOUYIN_NO_VIDEO: 404,
+  DOUYIN_EXTRACTION_FAILED: 502,
   UNSUPPORTED_SOURCE: 422
 };
 
@@ -174,7 +176,7 @@ export async function registerRoutes(app: FastifyInstance): Promise<void> {
     const timeout = setTimeout(() => controller.abort(), 30_000);
     let response: Response;
     try {
-      response = await fetch(sourceUrl, { redirect: "error", headers, signal: controller.signal });
+      response = await fetchPublicHttps(sourceUrl, { headers, signal: controller.signal });
     } catch (error) {
       app.log.error({ err: error, sourceHost: sourceUrl.hostname }, "Source media connection failed");
       throw Object.assign(new Error("Source media is temporarily unavailable"), { code: "SOURCE_DELIVERY_FAILED", statusCode: 502 });

@@ -9,7 +9,7 @@
     <view class="step-row"><view class="step-number">1</view><view><view class="section-title">选择平台</view><view class="muted">不同平台使用独立解析策略</view></view></view>
     <view class="platform-grid">
       <view wx:for="{{platforms}}" wx:key="id" class="platform-card {{selectedPlatform === item.id ? 'selected' : ''}}" data-id="{{item.id}}" bindtap="selectPlatform">
-        <view class="platform-logo">D</view>
+        <view class="platform-logo">{{item.mark || 'D'}}</view>
         <view class="platform-main"><view class="platform-name">{{item.name}}</view><view class="platform-description">{{item.description}}</view></view>
         <view class="selected-mark">✓</view>
       </view>

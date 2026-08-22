@@ -5,6 +5,8 @@ const publicErrorMessages = {
   INVALID_DOLA_URL: "请输入公开的 Dola Thread 链接",
   INVALID_SOURCE_URL: "请输入所选平台的有效公开分享链接",
   DOLA_NO_VIDEO: "该公开 Thread 中没有找到可下载视频",
+  DOUYIN_NO_VIDEO: "该抖音公开链接中没有找到可下载视频",
+  DOUYIN_EXTRACTION_FAILED: "暂时无法解析该抖音视频，请稍后重试",
   SOURCE_NO_VIDEO: "该公开链接中没有找到可下载视频",
   DOLA_CLEAN_SOURCE_UNAVAILABLE: "原始无水印视频暂时不可用",
   CLEAN_SOURCE_UNAVAILABLE: "原始视频暂时不可用",

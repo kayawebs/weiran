@@ -2,6 +2,7 @@ export type MediaStream = {
   url: string;
   mimeType: string;
   quality?: string;
+  label?: string;
   width?: number;
   height?: number;
   requestHeaders?: Record<string, string>;

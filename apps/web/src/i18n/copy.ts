@@ -38,7 +38,7 @@ const en = {
       { title: "Stream on demand", description: "Preview or download through a short-lived private link." }
     ], legal: "Only submit material you own or have permission to download and reuse.",
     found: (count: number) => `${count} VIDEO${count === 1 ? "" : "S"} FOUND`, resultsTitle: "Clean source videos", expires: (minutes: number) => `Links refresh after ${minutes} minutes`,
-    videoNumber: (index: number) => `VIDEO ${String(index).padStart(2, "0")}`, original: "ORIGINAL", noWatermark: "No watermark", download: "Download", preview: "Preview", hidePreview: "Close"
+    videoNumber: (index: number) => `VIDEO ${String(index).padStart(2, "0")}`, original: "ORIGINAL", noWatermark: "No watermark", download: "Download", downloadNoWatermark: "Download — no watermark", otherDownloads: "Other download options", preview: "Preview", hidePreview: "Close"
   },
   image: {
     eyebrow: "IMAGE · CLEANUP", title: "Remove what gets in the way.", description: "Upload an authorized image and draw directly over the watermark. We restore the selected area while preserving the rest.", limit: "REGION PER TASK",
@@ -55,7 +55,7 @@ const en = {
     statuses: { PENDING: "PENDING", PROCESSING: "PROCESSING", SUCCESS: "SUCCESS", FAILED: "FAILED" }
   },
   notFound: { eyebrow: "404 · OFF THE WORKBENCH", title: "Nothing here.", description: "The page may have moved, but the tools are still ready.", back: "Back home" },
-  api: { requestFailed: "The request could not be completed.", uploadFailed: "The image could not be uploaded.", error: (code: string | undefined, _message: string | undefined) => ({ RATE_LIMITED: "Too many requests. Please try again shortly.", UNAUTHENTICATED: "Your session expired. Please try again.", VALIDATION_ERROR: "Check the submitted information and try again.", INVALID_DOLA_URL: "Paste a valid public Dola thread URL.", INVALID_SOURCE_URL: "Paste a valid public share link for the selected platform.", DOLA_NO_VIDEO: "No downloadable videos were found in this public thread.", SOURCE_NO_VIDEO: "No downloadable video was found in this public link.", DOLA_CLEAN_SOURCE_UNAVAILABLE: "The original video is temporarily unavailable.", CLEAN_SOURCE_UNAVAILABLE: "The original video is temporarily unavailable.", DOLA_EXTRACTION_FAILED: "The Dola thread could not be scanned right now.", SOURCE_RESOLVE_FAILED: "The source page could not be scanned right now.", SOURCE_DELIVERY_FAILED: "The source video could not be delivered right now.", SOURCE_TICKET_INVALID: "This media link has expired. Scan the link again.", VIDEO_FLOW_MIGRATED: "This video task has moved to the instant source scanner." }[code || ""] || "The request could not be completed.") },
+  api: { requestFailed: "The request could not be completed.", uploadFailed: "The image could not be uploaded.", error: (code: string | undefined, _message: string | undefined) => ({ RATE_LIMITED: "Too many requests. Please try again shortly.", UNAUTHENTICATED: "Your session expired. Please try again.", VALIDATION_ERROR: "Check the submitted information and try again.", INVALID_DOLA_URL: "Paste a valid public Dola thread URL.", INVALID_SOURCE_URL: "Paste a valid public share link for the selected platform.", DOLA_NO_VIDEO: "No downloadable videos were found in this public thread.", DOUYIN_NO_VIDEO: "No downloadable public video was found in this Douyin link.", DOUYIN_EXTRACTION_FAILED: "The Douyin video could not be scanned right now. Please try again.", SOURCE_NO_VIDEO: "No downloadable video was found in this public link.", DOLA_CLEAN_SOURCE_UNAVAILABLE: "The original video is temporarily unavailable.", CLEAN_SOURCE_UNAVAILABLE: "The original video is temporarily unavailable.", DOLA_EXTRACTION_FAILED: "The Dola thread could not be scanned right now.", SOURCE_RESOLVE_FAILED: "The source page could not be scanned right now.", SOURCE_DELIVERY_FAILED: "The source video could not be delivered right now.", SOURCE_TICKET_INVALID: "This media link has expired. Scan the link again.", VIDEO_FLOW_MIGRATED: "This video task has moved to the instant source scanner." }[code || ""] || "The request could not be completed.") },
   ads: { label: "ADVERTISEMENT", houseText: "Creator tools, selected by Weiran Lab." }
 };
 
@@ -97,7 +97,7 @@ const zh: typeof en = {
       { title: "按需传输", description: "通过短期私有链接预览或下载。" }
     ], legal: "请仅提交您拥有或已获授权下载、使用的素材。",
     found: (count: number) => `找到 ${count} 个视频`, resultsTitle: "无水印源视频", expires: (minutes: number) => `链接将在 ${minutes} 分钟后失效`,
-    videoNumber: (index: number) => `视频 ${String(index).padStart(2, "0")}`, original: "原画", noWatermark: "无水印", download: "下载", preview: "预览", hidePreview: "关闭"
+    videoNumber: (index: number) => `视频 ${String(index).padStart(2, "0")}`, original: "原画", noWatermark: "无水印", download: "下载", downloadNoWatermark: "下载无水印视频", otherDownloads: "其他下载选项", preview: "预览", hidePreview: "关闭"
   },
   image: {
     eyebrow: "图片 · 清理", title: "移除画面中的干扰。", description: "上传已获授权的图片，直接框选水印区域。系统会在保留其他内容的同时修复选中位置。", limit: "每个任务一个区域",
@@ -114,7 +114,7 @@ const zh: typeof en = {
     statuses: { PENDING: "排队中", PROCESSING: "处理中", SUCCESS: "已完成", FAILED: "失败" }
   },
   notFound: { eyebrow: "404 · 页面不存在", title: "这里没有内容。", description: "页面可能已经移动，但工具仍然可以正常使用。", back: "返回首页" },
-  api: { requestFailed: "请求暂时无法完成。", uploadFailed: "图片上传失败，请稍后重试。", error: (code: string | undefined) => ({ RATE_LIMITED: "请求过于频繁，请稍后重试。", UNAUTHENTICATED: "登录状态已失效，请重新操作。", VALIDATION_ERROR: "提交的信息格式不正确。", INVALID_TASK_INPUT: "任务参数不正确，请检查后重试。", TASK_NOT_FOUND: "没有找到该任务。", TASK_NOT_READY: "任务尚未处理完成。", INVALID_DOLA_URL: "请粘贴有效的 Dola 公开 Thread 链接。", INVALID_SOURCE_URL: "请粘贴所选平台的有效公开分享链接。", DOLA_NO_VIDEO: "该公开 Thread 中没有找到可下载视频。", SOURCE_NO_VIDEO: "该公开链接中没有找到可下载视频。", DOLA_CLEAN_SOURCE_UNAVAILABLE: "原始无水印视频暂时不可用。", CLEAN_SOURCE_UNAVAILABLE: "原始视频暂时不可用。", DOLA_EXTRACTION_FAILED: "暂时无法解析该 Dola Thread。", SOURCE_RESOLVE_FAILED: "暂时无法解析该素材页面。", SOURCE_DELIVERY_FAILED: "源视频暂时无法下载。", SOURCE_TICKET_INVALID: "下载链接已失效，请重新解析。", VIDEO_FLOW_MIGRATED: "旧版视频任务已迁移到即时素材扫描。" }[code || ""] || "请求暂时无法完成。") },
+  api: { requestFailed: "请求暂时无法完成。", uploadFailed: "图片上传失败，请稍后重试。", error: (code: string | undefined) => ({ RATE_LIMITED: "请求过于频繁，请稍后重试。", UNAUTHENTICATED: "登录状态已失效，请重新操作。", VALIDATION_ERROR: "提交的信息格式不正确。", INVALID_TASK_INPUT: "任务参数不正确，请检查后重试。", TASK_NOT_FOUND: "没有找到该任务。", TASK_NOT_READY: "任务尚未处理完成。", INVALID_DOLA_URL: "请粘贴有效的 Dola 公开 Thread 链接。", INVALID_SOURCE_URL: "请粘贴所选平台的有效公开分享链接。", DOLA_NO_VIDEO: "该公开 Thread 中没有找到可下载视频。", DOUYIN_NO_VIDEO: "该抖音公开链接中没有找到可下载视频。", DOUYIN_EXTRACTION_FAILED: "暂时无法解析该抖音视频，请稍后重试。", SOURCE_NO_VIDEO: "该公开链接中没有找到可下载视频。", DOLA_CLEAN_SOURCE_UNAVAILABLE: "原始无水印视频暂时不可用。", CLEAN_SOURCE_UNAVAILABLE: "原始视频暂时不可用。", DOLA_EXTRACTION_FAILED: "暂时无法解析该 Dola Thread。", SOURCE_RESOLVE_FAILED: "暂时无法解析该素材页面。", SOURCE_DELIVERY_FAILED: "源视频暂时无法下载。", SOURCE_TICKET_INVALID: "下载链接已失效，请重新解析。", VIDEO_FLOW_MIGRATED: "旧版视频任务已迁移到即时素材扫描。" }[code || ""] || "请求暂时无法完成。") },
   ads: { label: "广告", houseText: "未然Lab 为创作者精选的工具与服务。" }
 };
 

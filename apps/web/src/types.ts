@@ -40,6 +40,18 @@ export type ResultResponse = {
   files: ResultFile[];
 };
 
+export type ResolvedSourceDownload = {
+  id: string;
+  mediaType: "video" | "audio";
+  label: string;
+  quality: string;
+  width: number | null;
+  height: number | null;
+  mimeType: string;
+  filename: string;
+  downloadPath: string;
+};
+
 export type ResolvedSourceVideo = {
   id: string;
   title: string;
@@ -52,6 +64,7 @@ export type ResolvedSourceVideo = {
   filename: string;
   previewPath: string;
   downloadPath: string;
+  downloads: ResolvedSourceDownload[];
 };
 
 export type ResolvedSource = {

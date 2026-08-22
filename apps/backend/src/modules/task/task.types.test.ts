@@ -29,6 +29,15 @@ test("accepts Dreamina and Jimeng public share URLs", () => {
   }).success, true);
 });
 
+test("accepts complete copied Douyin share text", () => {
+  const copied = "6.64 复制打开抖音，看看【熊仔很黄酸🐻的作品】 https://v.douyin.com/X_Bk1Ya5o9c/ K@j.Px :8pm";
+  const parsed = createTaskSchema.safeParse({
+    taskType: "VIDEO_WATERMARK_REMOVE",
+    input: { platform: "douyin", url: copied }
+  });
+  assert.equal(parsed.success, true);
+});
+
 test("rejects a share URL assigned to the wrong platform", () => {
   assert.equal(createTaskSchema.safeParse({
     taskType: "VIDEO_WATERMARK_REMOVE",

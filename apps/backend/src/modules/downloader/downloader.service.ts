@@ -35,13 +35,30 @@ export function safeSourceRequestHeaders(requestHeaders: Record<string, string> 
   return Object.fromEntries(Object.entries(requestHeaders).filter(([name]) => allowedHeaders.has(name.toLowerCase())));
 }
 
+export async function fetchPublicHttps(
+  rawUrl: string | URL,
+  init: Omit<RequestInit, "redirect"> = {},
+  maxRedirects = 5
+): Promise<Response> {
+  let current = await assertPublicHttpsUrl(rawUrl.toString());
+  for (let redirectCount = 0; redirectCount <= maxRedirects; redirectCount += 1) {
+    const response = await fetch(current, { ...init, redirect: "manual" });
+    if (![301, 302, 303, 307, 308].includes(response.status)) return response;
+    const location = response.headers.get("location");
+    void response.body?.cancel();
+    if (!location) throw new DownloadError("Source returned an invalid redirect", "SOURCE_DOWNLOAD_FAILED");
+    current = await assertPublicHttpsUrl(new URL(location, current).toString());
+  }
+  throw new DownloadError("Source redirected too many times", "SOURCE_DOWNLOAD_FAILED");
+}
+
 export type DownloadedFile = { byteSize: number; mimeType: string };
 
 export class DownloaderService {
   async downloadToFile(rawUrl: string, destination: string, requestHeaders: Record<string, string> = {}): Promise<DownloadedFile> {
     const url = await assertPublicHttpsUrl(rawUrl);
     const headers = safeSourceRequestHeaders(requestHeaders);
-    const response = await fetch(url, { redirect: "error", headers, signal: AbortSignal.timeout(120_000) });
+    const response = await fetchPublicHttps(url, { headers, signal: AbortSignal.timeout(120_000) });
     if (!response.ok) throw new DownloadError(`Source returned HTTP ${response.status}`, "SOURCE_DOWNLOAD_FAILED");
     const declaredLength = Number(response.headers.get("content-length") ?? 0);
     if (declaredLength > env.MAX_UPLOAD_BYTES) throw new DownloadError("Source media exceeds size limit", "SOURCE_TOO_LARGE");

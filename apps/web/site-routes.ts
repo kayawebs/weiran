@@ -5,6 +5,7 @@ export const indexableRoutes = [
   { path: "/download/dola", priority: "0.9", changefreq: "weekly" },
   { path: "/download/dreamina", priority: "0.9", changefreq: "weekly" },
   { path: "/download/jimeng", priority: "0.9", changefreq: "weekly" },
+  { path: "/download/douyin", priority: "0.9", changefreq: "weekly" },
   { path: "/image", priority: "0.8", changefreq: "weekly" },
   { path: "/image/watermark-remover", priority: "0.9", changefreq: "weekly" },
   { path: "/privacy", priority: "0.2", changefreq: "yearly" },

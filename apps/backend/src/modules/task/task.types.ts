@@ -24,7 +24,7 @@ const imageWatermarkInputSchema = z.object({
 
 const videoWatermarkInputSchema = z.object({
   platform: z.enum(videoPlatformIds),
-  url: z.string().url()
+  url: z.string().trim().min(1).max(4096)
 }).superRefine((input, context) => {
   if (!matchesVideoPlatformUrl(input.platform, input.url)) {
     context.addIssue({

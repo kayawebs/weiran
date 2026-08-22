@@ -161,11 +161,11 @@ export const tools: ToolDefinition[] = [
     tags: [text("Public links", "公开链接"), text("Creator source", "创作源素材")]
   },
   {
-    id: "douyin-video", category: "download", status: "planned", path: "/download/douyin", mark: "DY", logo: "/logos/douyin.png",
-    title: text("Douyin source downloader", "抖音素材下载"), shortTitle: text("Douyin", "抖音"),
-    description: text("Prepare creator-authorized media from supported public Douyin links.", "从受支持的抖音公开链接获取已获授权的创作素材。"),
-    seoDescription: text("A dedicated Douyin public source downloader for authorized creator workflows.", "面向已授权创作流程的抖音公开素材专属下载工具。"),
-    tags: [text("Short links", "短链接"), text("Video", "视频")]
+    id: "douyin-video", category: "download", status: "live", path: "/download/douyin", mark: "DY", logo: "/logos/douyin.png",
+    title: text("Douyin no-watermark downloader", "抖音无水印视频下载"), shortTitle: text("Douyin", "抖音"),
+    description: text("Paste a Douyin link or complete share text to download the clean video and original audio.", "粘贴抖音链接或整段分享文案，下载无水印视频和原始音频。"),
+    seoDescription: text("Download a clean Douyin video and original audio from public links or copied share text.", "从抖音公开链接或复制的分享文案下载无水印视频和原始音频。"),
+    tags: [text("Share text", "分享文案"), text("No watermark", "无水印"), text("Audio MP3", "音频 MP3")]
   },
   {
     id: "xiaohongshu-media", category: "download", status: "planned", path: "/download/xiaohongshu", mark: "XHS", logo: "/logos/xiaohongshu.png",

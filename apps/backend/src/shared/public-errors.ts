@@ -4,6 +4,8 @@ const publicMessages: Record<string, string> = {
   DOLA_CLEAN_SOURCE_UNAVAILABLE: "The original Dola video is temporarily unavailable.",
   DOLA_EXTRACTION_FAILED: "The Dola thread could not be scanned right now.",
   DOLA_NO_VIDEO: "No downloadable videos were found in this public Dola thread.",
+  DOUYIN_EXTRACTION_FAILED: "The Douyin video could not be scanned right now.",
+  DOUYIN_NO_VIDEO: "No downloadable public video was found in this Douyin link.",
   INVALID_DOLA_URL: "Enter a valid public Dola thread URL.",
   INVALID_SOURCE_URL: "Enter a valid public share URL for the selected platform.",
   PROCESSING_FAILED: "Media processing could not be completed. Please try again later.",

@@ -18,9 +18,16 @@ function durationLabel(duration: number | null): string | null {
   return `${minutes}:${String(seconds % 60).padStart(2, "0")}`;
 }
 
-function qualityLabel(quality: string, height: number | null): string {
-  if (height) return `${height}P`;
+function qualityLabel(quality: string, width: number | null, height: number | null): string {
+  const shortEdge = width && height ? Math.min(width, height) : height ?? width;
+  if (shortEdge) return `${shortEdge}P`;
   return quality === "source" ? copy.video.original : quality.toUpperCase();
+}
+
+function extractSharedUrl(value: string): URL | null {
+  const match = value.match(/https?:\/\/[^\s<>"'，。！？；：、]+/i);
+  if (!match) return null;
+  try { return new URL(match[0].replace(/[)\]}>）》】]+$/u, "")); } catch { return null; }
 }
 
 export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePlatformId }) {
@@ -52,7 +59,8 @@ export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePl
   }, [platform.id]);
 
   const isValidUrl = useCallback((value: string) => {
-    try { return platform.isValidUrl(new URL(value)); } catch { return false; }
+    const sharedUrl = extractSharedUrl(value);
+    return sharedUrl ? platform.isValidUrl(sharedUrl) : false;
   }, [platform]);
 
   useEffect(() => {
@@ -91,7 +99,12 @@ export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePl
           <div className="compact-source-input">
             <div>
               <label className="field-label" htmlFor={`${platform.id}-url`}>{platform.fieldLabel}</label>
-              <div className="url-field"><input id={`${platform.id}-url`} type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder={platform.placeholder} autoComplete="url" /><span>URL</span></div>
+              <div className={`url-field${platform.acceptsShareText ? " share-text-field" : ""}`}>
+                {platform.acceptsShareText
+                  ? <textarea id={`${platform.id}-url`} value={url} onChange={(event) => setUrl(event.target.value)} placeholder={platform.placeholder} rows={2} />
+                  : <input id={`${platform.id}-url`} type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder={platform.placeholder} autoComplete="url" />}
+                <span>{platform.acceptsShareText ? "TEXT / URL" : "URL"}</span>
+              </div>
             </div>
             <button className="primary-action" type="submit" disabled={submitting}>{submitting ? copy.video.starting : copy.video.submit}<span>→</span></button>
           </div>
@@ -108,22 +121,31 @@ export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePl
           const previewUrl = apiMediaUrl(video.previewPath);
           const coverUrl = video.coverUrl ? apiMediaUrl(video.coverUrl) : null;
           const duration = durationLabel(video.duration);
+          const extraDownloads = (video.downloads ?? []).filter((option) => option.downloadPath !== video.downloadPath);
           return <article className="source-result-card" key={video.id}>
             <div className="source-cover">{coverUrl ? <img src={coverUrl} alt="" loading="lazy" /> : <span>{platform.mark}</span>}</div>
             <div className="source-result-copy">
               <p>{copy.video.videoNumber(index + 1)}</p>
               <h3>{video.title}</h3>
               <div className="source-tags">
-                <span>{qualityLabel(video.quality, video.height)}</span>
+                <span>{qualityLabel(video.quality, video.width, video.height)}</span>
                 <span className="clean-tag">{copy.video.noWatermark}</span>
                 {video.width && video.height && <span>{video.width}×{video.height}</span>}
                 {duration && <span>{duration}</span>}
               </div>
             </div>
             <div className="source-result-actions">
-              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download={video.filename}>{copy.video.download}<span>↓</span></a>
+              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download={video.filename}>{platform.id === "douyin" ? copy.video.downloadNoWatermark : copy.video.download}<span>↓</span></a>
               <button className="secondary-action" type="button" onClick={() => setPreviewId(previewId === video.id ? null : video.id)}>{previewId === video.id ? copy.video.hidePreview : copy.video.preview}<span>{previewId === video.id ? "×" : "▶"}</span></button>
             </div>
+            {extraDownloads.length > 0 && <div className="source-download-options">
+              <p>{copy.video.otherDownloads}</p>
+              <div>{extraDownloads.map((option) => <a key={option.id} href={apiMediaUrl(option.downloadPath)} download={option.filename}>
+                <span>{option.mediaType === "audio" ? "♫" : "▣"}</span>
+                <strong>{option.label}</strong>
+                <small>{option.mediaType === "audio" ? "MP3" : qualityLabel(option.quality, option.width, option.height)}</small>
+              </a>)}</div>
+            </div>}
             {previewId === video.id && <div className="source-preview"><video src={previewUrl} poster={coverUrl ?? undefined} controls playsInline preload="metadata" /></div>}
           </article>;
         })}</div>

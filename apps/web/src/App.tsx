@@ -26,6 +26,7 @@ export default function App() {
         <Route path="download/dola" element={<VideoSourcePage platformId="dola" />} />
         <Route path="download/dreamina" element={<VideoSourcePage platformId="dreamina" />} />
         <Route path="download/jimeng" element={<VideoSourcePage platformId="jimeng" />} />
+        <Route path="download/douyin" element={<VideoSourcePage platformId="douyin" />} />
         <Route path="download/:toolSlug" element={<ToolLandingPage />} />
         <Route path="image" element={<CategoryPage categoryId="image" />} />
         <Route path="image/watermark-remover" element={<ImageWatermarkPage />} />

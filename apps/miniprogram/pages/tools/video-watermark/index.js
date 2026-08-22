@@ -7,6 +7,8 @@ const fallbackPlatforms = [{
   urlPlaceholder: "https://www.dola.com/thread/..."
 }];
 
+const platformMarks = { dola: "D", dreamina: "DR", jimeng: "JM", douyin: "抖" };
+
 function durationLabel(duration) {
   if (duration === null || duration === undefined) return "";
   const seconds = Math.round(duration);
@@ -32,7 +34,7 @@ Page({
   async loadPlatforms() {
     try {
       const capabilities = await api.getCapabilities();
-      const platforms = capabilities.videoWatermarkPlatforms || fallbackPlatforms;
+      const platforms = (capabilities.videoWatermarkPlatforms || fallbackPlatforms).map((item) => ({ ...item, mark: platformMarks[item.id] || item.name.slice(0, 2) }));
       if (!platforms.length) return;
       const selected = platforms.find((item) => item.id === this.data.selectedPlatform) || platforms[0];
       this.setData({ platforms, selectedPlatform: selected.id, placeholder: selected.urlPlaceholder });
@@ -65,6 +67,9 @@ Page({
       }
       if (this.data.selectedPlatform === "jimeng" && !/^https:\/\/jimeng\.jianying\.com\/(?:s\/[A-Za-z0-9_-]+|ai-tool\/work-detail\/[A-Za-z0-9_-]+)\/?(?:\?.*)?$/.test(url)) {
         throw new Error("请输入公开的即梦分享链接");
+      }
+      if (this.data.selectedPlatform === "douyin" && !/https:\/\/(?:v\.|www\.)?douyin\.com\//i.test(url)) {
+        throw new Error("请粘贴包含抖音公开视频链接的分享文案");
       }
       this.setData({ submitting: true });
       const resolved = await api.resolveSources(this.data.selectedPlatform, url);
