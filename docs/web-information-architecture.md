@@ -41,8 +41,8 @@
 ├── /tools                         全部工具与搜索
 ├── /download                      素材下载与提取
 │   ├── /download/dola             已上线
-│   ├── /download/jimeng           专属页面，Connector 待上线
-│   ├── /download/dreamina
+│   ├── /download/jimeng           已上线
+│   ├── /download/dreamina         已上线
 │   ├── /download/doubao
 │   ├── /download/vibes
 │   ├── /download/gemini-flow

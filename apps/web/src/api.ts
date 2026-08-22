@@ -1,4 +1,5 @@
 import type { ResolvedSource, ResultResponse, Task, WatermarkRegion } from "./types";
+import type { SourcePlatformId } from "./catalog/sourcePlatforms";
 import { copy } from "./i18n/copy";
 
 const API_BASE_URL = (import.meta.env.VITE_API_BASE_URL as string | undefined)?.replace(/\/$/, "") ?? "/api";
@@ -68,9 +69,9 @@ async function uploadImage(file: File): Promise<string> {
 }
 
 export const api = {
-  resolveVideoSources: (url: string) => request<ResolvedSource>("/v1/sources/resolve", {
+  resolveVideoSources: (platform: SourcePlatformId, url: string) => request<ResolvedSource>("/v1/sources/resolve", {
     method: "POST",
-    body: JSON.stringify({ platform: "dola", url })
+    body: JSON.stringify({ platform, url })
   }),
   createImageTask: async (file: File, region: WatermarkRegion, mode: "inpaint" | "blur") => {
     const sourceAssetId = await uploadImage(file);

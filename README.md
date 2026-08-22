@@ -11,11 +11,11 @@
 - 统一异步任务模型：`SOURCE_DOWNLOAD`、`IMAGE_WATERMARK_REMOVE`、`VIDEO_WATERMARK_REMOVE`
 - Docker PostgreSQL 任务/资产/事件审计模型，Docker Redis + BullMQ 重试队列，阿里云 OSS 私有存储
 - 图片水印区域：OpenCV inpaint 或模糊处理；视频按来源平台选择解析策略
-- Dola 平台：粘贴公开 Thread URL，同步发现全部视频并返回 Redis 随机短票据预览/下载链接；扫描阶段不下载、不写 OSS、不重编码
+- Dola、Dreamina / CapCut、即梦 / Seedance：粘贴公开作品链接，同步解析原始视频并返回 Redis 随机短票据预览/下载链接；扫描阶段不下载、不写 OSS、不重编码
 - 受控的 HTTPS 素材解析与下载（来源/媒体主机白名单、私有网络阻断、重定向与体积限制）
 - 可插拔 `SourceExtractor` 与平台定义，后续可继续增加内容平台 connector
 - 原生微信小程序：首页、工具分类、平台选择、URL 提交、多视频结果预览与保存
-- 中英文响应式 Web App：四类工具地图、平台专属 URL、目录搜索、Dola 解析、图片拖拽框选、任务结果和浏览器历史，适配 PC 和 Mobile
+- 中英文响应式 Web App：四类工具地图、平台专属 URL、目录搜索、多平台视频解析、图片拖拽框选、任务结果和浏览器历史，适配 PC 和 Mobile
 - 微信登录：`wx.login → code2Session → JWT`；用户 ID 不再由客户端请求头提供
 - Web 匿名登录：服务端签发受限 JWT；API 跨域白名单与全局限流可通过环境变量配置
 - 区域构建：`cn` 输出中文 Web，`global` 输出英文 Web；Global 可配置 AdSense，国内继续通过独立广告 Adapter 接入本地平台
@@ -53,7 +53,7 @@ Vite 开发服务器默认在 `http://localhost:5173`，并已将 `/api` 代理�
 
 ## API 快速示例
 
-小程序启动时通过 `wx.login` 获取 code 并调用 `POST /v1/auth/wechat`，得到 JWT。图片任务先通过 OSS 上传接口取得 `assetId`；Dola 原画发现属于同步查询，不创建异步 Task。
+小程序启动时通过 `wx.login` 获取 code 并调用 `POST /v1/auth/wechat`，得到 JWT。图片任务先通过 OSS 上传接口取得 `assetId`；平台原画发现属于同步查询，不创建异步 Task。
 
 图片去水印：
 
@@ -69,7 +69,7 @@ POST /v1/tasks
 }
 ```
 
-Dola 视频原画解析：
+平台视频原画解析（`platform` 可取 `dola`、`dreamina` 或 `jimeng`）：
 
 ```json
 POST /v1/sources/resolve
@@ -91,6 +91,8 @@ POST /v1/sources/resolve
 - `/tools`：可搜索的完整工具目录，明确区分可用与开发中
 - `/download`、`/image`、`/video`、`/creator`：素材下载、图片、视频、创作辅助工作区
 - `/download/dola`：扫描公开 Dola Thread，并在同页预览或下载全部源视频
+- `/download/dreamina`：解析公开 Dreamina / CapCut AI Work Detail 原始视频
+- `/download/jimeng`：解析公开即梦 / Seedance 分享页或 Work Detail 原始视频
 - `/download/:platform`：每个 AI 应用的稳定专属页面；Extractor 未上线前显示开发中并设置 `noindex`
 - `/image/watermark-remover`：上传图片并用鼠标或触控拖拽水印区域
 - `/tasks/:id`：轮询任务、预览并下载全部结果
@@ -125,7 +127,7 @@ npm run build:web:global
 
 在微信开发者工具导入 `apps/miniprogram`。当前项目显示名为“未然Lab”，并已配置 AppID `wxa5c763c97869a2aa`；小程序原始 ID 为 `gh_476d3d7733d7`。将 [app.js](apps/miniprogram/app.js) 中 `apiBaseUrl` 改为已备案的 HTTPS API 域名，并在小程序后台添加 request 合法域名，以及 OSS 域名的 uploadFile、downloadFile 合法域名。
 
-小程序采用“首页 / 工具 / 我的”三 Tab 架构：首页呈现未然Lab 的 AI 创作者工具平台定位和分类；图片、视频去水印属于“素材处理”分类。视频页不再上传视频或填写水印坐标，而是选择平台并粘贴公开 URL；当前启用 Dola，后台会返回 Thread 中的全部视频。素材获取、字幕、封面、格式转换等能力以未启用工具预留，不包含资讯、AI 情报、社区、会员或支付。AI 情报媒体应作为公众号、网站和短视频渠道的独立系统运营。用户应只处理拥有或已获授权使用的媒体；各来源 connector 还应遵守相应平台的条款与版权限制。
+小程序采用“首页 / 工具 / 我的”三 Tab 架构：首页呈现未然Lab 的 AI 创作者工具平台定位和分类；图片、视频去水印属于“素材处理”分类。视频页不再上传视频或填写水印坐标，而是选择平台并粘贴公开 URL；当前启用 Dola、Dreamina / CapCut 与即梦 / Seedance，后台按平台返回一个或多个原始视频。素材获取、字幕、封面、格式转换等能力以未启用工具预留，不包含资讯、AI 情报、社区、会员或支付。AI 情报媒体应作为公众号、网站和短视频渠道的独立系统运营。用户应只处理拥有或已获授权使用的媒体；各来源 connector 还应遵守相应平台的条款与版权限制。
 
 ## 扩展新工具
 

@@ -17,3 +17,21 @@ test("rejects a non-Dola URL for the Dola platform", () => {
     input: { platform: "dola", url: "https://example.com/thread/xL02pFHSUcQEQa3ME" }
   }).success, false);
 });
+
+test("accepts Dreamina and Jimeng public share URLs", () => {
+  assert.equal(createTaskSchema.safeParse({
+    taskType: "VIDEO_WATERMARK_REMOVE",
+    input: { platform: "dreamina", url: "https://dreamina.capcut.com/ai-tool/work-detail/7622480873543273744?isShared=1" }
+  }).success, true);
+  assert.equal(createTaskSchema.safeParse({
+    taskType: "VIDEO_WATERMARK_REMOVE",
+    input: { platform: "jimeng", url: "https://jimeng.jianying.com/s/abcDEF123/" }
+  }).success, true);
+});
+
+test("rejects a share URL assigned to the wrong platform", () => {
+  assert.equal(createTaskSchema.safeParse({
+    taskType: "VIDEO_WATERMARK_REMOVE",
+    input: { platform: "jimeng", url: "https://dreamina.capcut.com/ai-tool/work-detail/7622480873543273744" }
+  }).success, false);
+});

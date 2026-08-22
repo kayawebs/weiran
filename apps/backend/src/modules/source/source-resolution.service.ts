@@ -1,4 +1,5 @@
 import { env } from "../../config/env.js";
+import { DreaminaExtractor, JimengExtractor } from "../extractor/creator-work.extractor.js";
 import { DolaExtractor } from "../extractor/dola.extractor.js";
 import { ExtractorRegistry, type MediaItem, type MediaStream } from "../extractor/source-extractor.js";
 import { getVideoPlatform, type VideoPlatformId } from "../platform/video-platforms.js";
@@ -40,7 +41,11 @@ function ticketPath(ticket: string, download = false): string {
 }
 
 export class SourceResolutionService {
-  private readonly extractors = new ExtractorRegistry([new DolaExtractor()]);
+  private readonly extractors = new ExtractorRegistry([
+    new DolaExtractor(),
+    new DreaminaExtractor(),
+    new JimengExtractor()
+  ]);
 
   constructor(private readonly tickets: SourceTicketService) {}
 
@@ -48,14 +53,14 @@ export class SourceResolutionService {
     const platform = getVideoPlatform(platformId);
     const source = await this.extractors.extract(url);
     if (source.extractorId !== platform.extractorId) {
-      throw Object.assign(new Error("The URL does not match the selected platform"), { code: "INVALID_DOLA_URL", statusCode: 422 });
+      throw Object.assign(new Error("The URL does not match the selected platform"), { code: "INVALID_SOURCE_URL", statusCode: 422 });
     }
     const items = source.items.filter((item) => item.mediaType === "video");
-    if (items.length === 0) throw Object.assign(new Error("No videos were found"), { code: "DOLA_NO_VIDEO", statusCode: 404 });
+    if (items.length === 0) throw Object.assign(new Error("No videos were found"), { code: "SOURCE_NO_VIDEO", statusCode: 404 });
 
     const videos = await Promise.all(items.map(async (item, index): Promise<ResolvedSourceVideo> => {
       const stream = selectCleanStream(item);
-      if (!stream) throw Object.assign(new Error("A clean source stream is unavailable"), { code: "DOLA_CLEAN_SOURCE_UNAVAILABLE", statusCode: 422 });
+      if (!stream) throw Object.assign(new Error("A clean source stream is unavailable"), { code: "CLEAN_SOURCE_UNAVAILABLE", statusCode: 422 });
       const filename = safeFilename(platform.id, index);
       const mediaTicket = await this.tickets.create({
         sourceUrl: stream.url,

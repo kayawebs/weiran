@@ -1,8 +1,9 @@
-import { type FormEvent, useCallback, useEffect, useRef, useState } from "react";
+import { type FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { AdSlot } from "../ads/AdSlot";
 import { api, apiMediaUrl, ApiError } from "../api";
 import { platformGuideFor } from "../catalog/platformGuides";
+import { sourcePlatformFor, type SourcePlatformId } from "../catalog/sourcePlatforms";
 import { PageIntro } from "../components/PageIntro";
 import { MoreToolsSection } from "../components/MoreToolsSection";
 import { PlatformLinkGuide } from "../components/PlatformLinkGuide";
@@ -22,8 +23,9 @@ function qualityLabel(quality: string, height: number | null): string {
   return quality === "source" ? copy.video.original : quality.toUpperCase();
 }
 
-export function VideoSourcePage() {
-  const guide = platformGuideFor("dola-video");
+export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePlatformId }) {
+  const platform = useMemo(() => sourcePlatformFor(platformId), [platformId]);
+  const guide = platformGuideFor(platform.toolId);
   const [searchParams] = useSearchParams();
   const incomingUrl = searchParams.get("url") ?? "";
   const shouldAutoScan = searchParams.get("scan") === "1";
@@ -39,7 +41,7 @@ export function VideoSourcePage() {
     setError("");
     setSubmitting(true);
     try {
-      const resolved = await api.resolveVideoSources(sourceUrl);
+      const resolved = await api.resolveVideoSources(platform.id, sourceUrl);
       setResult(resolved);
       setPreviewId(null);
     } catch (cause) {
@@ -47,13 +49,17 @@ export function VideoSourcePage() {
     } finally {
       setSubmitting(false);
     }
-  }, []);
+  }, [platform.id]);
+
+  const isValidUrl = useCallback((value: string) => {
+    try { return platform.isValidUrl(new URL(value)); } catch { return false; }
+  }, [platform]);
 
   useEffect(() => {
-    if (!shouldAutoScan || autoScanStarted.current || !/^https:\/\/(www\.)?dola\.com\/thread\/[A-Za-z0-9_-]+\/?(?:\?.*)?$/.test(incomingUrl)) return;
+    if (!shouldAutoScan || autoScanStarted.current || !isValidUrl(incomingUrl)) return;
     autoScanStarted.current = true;
     void scanUrl(incomingUrl);
-  }, [incomingUrl, scanUrl, shouldAutoScan]);
+  }, [incomingUrl, isValidUrl, scanUrl, shouldAutoScan]);
 
   useEffect(() => {
     if (!result) return;
@@ -64,8 +70,8 @@ export function VideoSourcePage() {
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
-    if (!/^https:\/\/(www\.)?dola\.com\/thread\/[A-Za-z0-9_-]+\/?(?:\?.*)?$/.test(url.trim())) {
-      setError(copy.video.invalid);
+    if (!isValidUrl(url.trim())) {
+      setError(platform.invalid);
       return;
     }
     await scanUrl(url.trim());
@@ -73,19 +79,19 @@ export function VideoSourcePage() {
 
   return (
     <>
-      <Seo title={copy.video.title} description={copy.video.description} path="/download/dola" />
-      <PageIntro compact eyebrow={copy.video.eyebrow} title={copy.video.title} description={copy.video.description} aside={<span className="platform-chip"><i /> {copy.video.supported}</span>} />
+      <Seo title={platform.title} description={platform.description} path={platform.path} />
+      <PageIntro compact eyebrow={platform.eyebrow} title={platform.title} description={platform.description} aside={<span className="platform-chip"><i /> {platform.supported}</span>} />
       <section className="tool-workspace compact-source-workspace">
         <form className="workspace-panel compact-source-panel" onSubmit={submit}>
           <header className="compact-source-header">
-            <span className="platform-logo has-logo"><img src="/logos/dola.png" alt="" /></span>
-            <div><p className="section-label">DOLA</p><h2>{copy.video.urlTitle}</h2><p>{copy.video.urlHint}</p></div>
+            <span className="platform-logo has-logo"><img src={platform.logo} alt="" /></span>
+            <div><p className="section-label">{platform.name.toUpperCase()}</p><h2>{platform.urlTitle}</h2><p>{platform.urlHint}</p></div>
           </header>
           {guide && <PlatformLinkGuide guide={guide} compact />}
           <div className="compact-source-input">
             <div>
-              <label className="field-label" htmlFor="dola-url">{copy.video.fieldLabel}</label>
-              <div className="url-field"><input id="dola-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://www.dola.com/thread/..." autoComplete="url" /><span>URL</span></div>
+              <label className="field-label" htmlFor={`${platform.id}-url`}>{platform.fieldLabel}</label>
+              <div className="url-field"><input id={`${platform.id}-url`} type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder={platform.placeholder} autoComplete="url" /><span>URL</span></div>
             </div>
             <button className="primary-action" type="submit" disabled={submitting}>{submitting ? copy.video.starting : copy.video.submit}<span>→</span></button>
           </div>
@@ -103,7 +109,7 @@ export function VideoSourcePage() {
           const coverUrl = video.coverUrl ? apiMediaUrl(video.coverUrl) : null;
           const duration = durationLabel(video.duration);
           return <article className="source-result-card" key={video.id}>
-            <div className="source-cover">{coverUrl ? <img src={coverUrl} alt="" loading="lazy" /> : <span>D</span>}</div>
+            <div className="source-cover">{coverUrl ? <img src={coverUrl} alt="" loading="lazy" /> : <span>{platform.mark}</span>}</div>
             <div className="source-result-copy">
               <p>{copy.video.videoNumber(index + 1)}</p>
               <h3>{video.title}</h3>
@@ -123,7 +129,7 @@ export function VideoSourcePage() {
         })}</div>
         <AdSlot placement="result-footer" />
       </section>}
-      <MoreToolsSection currentToolId="dola-video" />
+      <MoreToolsSection currentToolId={platform.toolId} />
       <AdSlot placement="tool-bottom" />
     </>
   );

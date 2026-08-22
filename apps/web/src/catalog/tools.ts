@@ -84,14 +84,14 @@ export const tools: ToolDefinition[] = [
     tags: [text("Multiple videos", "多视频"), text("Original MP4", "原始 MP4"), text("Instant scan", "即时解析")]
   },
   {
-    id: "jimeng-video", category: "download", status: "planned", path: "/download/jimeng", mark: "JM", logo: "/logos/jimeng.png",
+    id: "jimeng-video", category: "download", status: "live", path: "/download/jimeng", mark: "JM", logo: "/logos/jimeng.png",
     title: text("Jimeng / Seedance downloader", "即梦 / Seedance 下载"), shortTitle: text("Jimeng / Seedance", "即梦 / Seedance"),
     description: text("Prepare original Jimeng and Seedance creator videos from public share links.", "从公开分享链接获取即梦与 Seedance 创作者原始视频。"),
     seoDescription: text("A dedicated Jimeng and Seedance source download workspace for AI creators.", "面向 AI 创作者的即梦与 Seedance 专属素材下载工作台。"),
     tags: [text("AI video", "AI 视频"), text("Share link", "分享链接")]
   },
   {
-    id: "dreamina-video", category: "download", status: "planned", path: "/download/dreamina", mark: "DR", logo: "/logos/jimeng.png",
+    id: "dreamina-video", category: "download", status: "live", path: "/download/dreamina", mark: "DR", logo: "/logos/jimeng.png",
     title: text("Dreamina / CapCut downloader", "Dreamina / 剪映下载"), shortTitle: text("Dreamina / CapCut", "Dreamina / 剪映"),
     description: text("Resolve public Dreamina and CapCut AI creation links into reusable source media.", "解析公开 Dreamina 与剪映 AI 创作链接，获取可再利用的源素材。"),
     seoDescription: text("A dedicated Dreamina and CapCut AI video source downloader.", "Dreamina 与剪映 AI 视频专属素材下载工具。"),

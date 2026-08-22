@@ -174,7 +174,7 @@ stateDiagram-v2
 
 1. API 验证输入，创建 `tasks` 和首个 `task_events`。
 2. 事务提交后将任务 ID 写入 Docker Redis 队列；队列重复投递不会重复处理，因为 Worker 只允许 `PENDING → PROCESSING` 的原子迁移。
-3. Worker 只处理需要持久化或计算的任务。Dola 快速发现由 API 调用 Extractor，同步解析无动态水印的 H.264 原画流；扫描时不下载视频、不写 OSS。
+3. Worker 只处理需要持久化或计算的任务。Dola、Dreamina 与即梦的快速发现由 API 调用对应 Extractor，同步解析公开页内的原始视频流；扫描时不下载视频、不写 OSS。
 4. 每次状态变化均写事件。未知错误由 BullMQ 按退避策略重试；最终失败落库可供客户端展示。
 5. 客户端以轮询查询为基线；后续可增加 WebSocket、订阅消息或 webhook，而不改变 Task 模型。
 
@@ -185,7 +185,7 @@ stateDiagram-v2
 - Worker 将所有外部命令限制为固定二进制与白名单参数，不将用户输入拼接为 shell。
 - 单个处理工作目录在任务结束后清理；对象存储路径采用 `uploads/{user}/{asset}` 与 `results/{user}/{task}`。
 - 每个处理器只接受经 Zod 校验的输入，不识别的任务类型立即失败。
-- Dola 解析器只接受公开 `dola.com/thread/...`、官方 VOD 元数据主机和 Dola 视频 CDN；拒绝跳转与非白名单地址。原画不可用时任务明确失败，不退回移动水印版本。
+- 平台解析器只接受其公开作品 URL 和明确列入白名单的官方媒体主机；拒绝跨平台跳转与非白名单地址。原画不可用时请求明确失败，不退回带水印版本。
 - 源媒体票据采用不可预测的随机 ID 并设置短有效期，避免将很长的源地址放进 URI；代理端再次执行 HTTPS/公网地址校验，只转发白名单请求头与合法的单段 `Range`，支持视频拖动播放。
 - 内部 SDK、网络和对象存储异常只写服务端日志；任务与 API 对客户端仅返回稳定错误码和安全文案，历史 `error_message`/事件 metadata 不直接序列化到客户端。
 
@@ -219,4 +219,4 @@ interface SourceExtractor {
 }
 ```
 
-`MediaSource` 包含 `originalUrl`、来源标题和 `items[]`；每个媒体项再标准化 `mediaType`、`title`、`cover`、`duration` 与 `streams[]`，因此一个页面可返回多个视频。每一个来源平台单独实现 connector，例如 `DolaExtractor`、`YoutubeExtractor`、`TikTokExtractor`。连接器只能处理授权的、可公开获取的素材，且应遵守源站条款和版权限制。
+`MediaSource` 包含 `originalUrl`、来源标题和 `items[]`；每个媒体项再标准化 `mediaType`、`title`、`cover`、`duration` 与 `streams[]`，因此一个页面可返回多个视频。每一个来源平台单独实现 connector，例如 `DolaExtractor`、`DreaminaExtractor`、`JimengExtractor`。连接器只能处理授权的、可公开获取的素材，且应遵守源站条款和版权限制。

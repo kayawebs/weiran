@@ -60,6 +60,12 @@ Page({
       if (this.data.selectedPlatform === "dola" && !/^https:\/\/(www\.)?dola\.com\/thread\/[A-Za-z0-9_-]+\/?(?:\?.*)?$/.test(url)) {
         throw new Error("请输入公开的 Dola Thread 链接");
       }
+      if (this.data.selectedPlatform === "dreamina" && !/^https:\/\/dreamina\.capcut\.com\/ai-tool\/work-detail\/[A-Za-z0-9_-]+\/?(?:\?.*)?$/.test(url)) {
+        throw new Error("请输入公开的 Dreamina 作品详情链接");
+      }
+      if (this.data.selectedPlatform === "jimeng" && !/^https:\/\/jimeng\.jianying\.com\/(?:s\/[A-Za-z0-9_-]+|ai-tool\/work-detail\/[A-Za-z0-9_-]+)\/?(?:\?.*)?$/.test(url)) {
+        throw new Error("请输入公开的即梦分享链接");
+      }
       this.setData({ submitting: true });
       const resolved = await api.resolveSources(this.data.selectedPlatform, url);
       const results = (resolved.videos || []).map((video, index) => ({

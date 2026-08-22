@@ -7,7 +7,7 @@ import { pool } from "../db/client.js";
 import { requireAuthentication } from "./auth.js";
 import { AuthService, AuthenticationError } from "../modules/auth/auth.service.js";
 import { assertPublicHttpsUrl, safeSourceRequestHeaders } from "../modules/downloader/downloader.service.js";
-import { listVideoPlatforms } from "../modules/platform/video-platforms.js";
+import { getVideoPlatform, listVideoPlatforms, matchesVideoPlatformUrl, videoPlatformIds } from "../modules/platform/video-platforms.js";
 import { SourceResolutionService } from "../modules/source/source-resolution.service.js";
 import { SourceTicketService } from "../modules/source/source-ticket.service.js";
 import { AssetRepository } from "../modules/storage/asset.repository.js";
@@ -29,13 +29,16 @@ const assetParams = z.object({ assetId: z.string().uuid() });
 const wechatLoginSchema = z.object({ code: z.string().min(1).max(512) });
 const taskListQuery = z.object({ limit: z.coerce.number().int().min(1).max(50).default(20) });
 const sourceResolveSchema = z.object({
-  platform: z.literal("dola"),
-  url: z.string().url().refine((value) => {
-    const url = new URL(value);
-    return url.protocol === "https:"
-      && (url.hostname === "dola.com" || url.hostname === "www.dola.com")
-      && /^\/thread\/[A-Za-z0-9_-]+\/?$/.test(url.pathname);
-  }, "Enter a public Dola thread URL")
+  platform: z.enum(videoPlatformIds),
+  url: z.string().url()
+}).superRefine((input, context) => {
+  if (!matchesVideoPlatformUrl(input.platform, input.url)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: getVideoPlatform(input.platform).invalidUrlMessage
+    });
+  }
 });
 const sourceMediaParams = z.object({ ticket: z.string().regex(/^[A-Za-z0-9_-]{43}$/) });
 const sourceMediaQuery = z.object({ download: z.literal("1").optional() });
@@ -47,6 +50,9 @@ const sourceErrorStatus: Record<string, number> = {
   DOLA_NO_VIDEO: 404,
   INVALID_DOLA_URL: 422,
   DOLA_CLEAN_SOURCE_UNAVAILABLE: 422,
+  SOURCE_NO_VIDEO: 404,
+  INVALID_SOURCE_URL: 422,
+  CLEAN_SOURCE_UNAVAILABLE: 422,
   UNSUPPORTED_SOURCE: 422
 };
 

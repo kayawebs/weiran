@@ -8,6 +8,7 @@ import { env } from "./config/env.js";
 import { closeDatabase, pool } from "./db/client.js";
 import { DownloaderService } from "./modules/downloader/downloader.service.js";
 import { DirectMediaExtractor } from "./modules/extractor/direct-media.extractor.js";
+import { DreaminaExtractor, JimengExtractor } from "./modules/extractor/creator-work.extractor.js";
 import { DolaExtractor } from "./modules/extractor/dola.extractor.js";
 import { ExtractorRegistry, type MediaItem, type MediaSource, type MediaStream } from "./modules/extractor/source-extractor.js";
 import { ImageWatermarkProcessor } from "./modules/processor/image/image.processor.js";
@@ -23,7 +24,12 @@ const storage = new StorageService();
 const assets = new AssetRepository(pool);
 const tasks = new TaskRepository(pool);
 const downloader = new DownloaderService();
-const extractors = new ExtractorRegistry([new DolaExtractor(), new DirectMediaExtractor()]);
+const extractors = new ExtractorRegistry([
+  new DolaExtractor(),
+  new DreaminaExtractor(),
+  new JimengExtractor(),
+  new DirectMediaExtractor()
+]);
 const imageProcessor = new ImageWatermarkProcessor();
 
 const extensionsByMime: Record<string, string> = {

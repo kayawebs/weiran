@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { videoPlatformIds } from "../platform/video-platforms.js";
+import { getVideoPlatform, matchesVideoPlatformUrl, videoPlatformIds } from "../platform/video-platforms.js";
 
 export const taskTypes = ["SOURCE_DOWNLOAD", "VIDEO_WATERMARK_REMOVE", "IMAGE_WATERMARK_REMOVE", "IMAGE_PROCESS"] as const;
 export type TaskType = (typeof taskTypes)[number];
@@ -26,12 +26,12 @@ const videoWatermarkInputSchema = z.object({
   platform: z.enum(videoPlatformIds),
   url: z.string().url()
 }).superRefine((input, context) => {
-  if (input.platform === "dola") {
-    const url = new URL(input.url);
-    const hostAllowed = url.hostname === "dola.com" || url.hostname === "www.dola.com";
-    if (url.protocol !== "https:" || !hostAllowed || !/^\/thread\/[A-Za-z0-9_-]+\/?$/.test(url.pathname)) {
-      context.addIssue({ code: z.ZodIssueCode.custom, path: ["url"], message: "Enter a public Dola thread URL" });
-    }
+  if (!matchesVideoPlatformUrl(input.platform, input.url)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["url"],
+      message: getVideoPlatform(input.platform).invalidUrlMessage
+    });
   }
 });
 
