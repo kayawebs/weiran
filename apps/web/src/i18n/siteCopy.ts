@@ -52,6 +52,12 @@ const en = {
     checks: "BEFORE YOU PASTE",
     legal: "Only download or process media you own or have permission to use. Platform interfaces and link formats can change."
   },
+  moreTools: {
+    eyebrow: "KEEP CREATING",
+    title: "Try another creator tool.",
+    description: "Move from acquiring a source to cleaning and preparing the next asset without leaving Weiran Lab.",
+    all: "Explore all tools"
+  },
   planned: {
     eyebrow: "DEDICATED TOOL PAGE",
     badge: "IN DEVELOPMENT",
@@ -125,6 +131,12 @@ const zh: typeof en = {
     formats: "常见链接格式",
     checks: "粘贴前请检查",
     legal: "请仅下载或处理您拥有或已获授权使用的素材。平台界面和链接格式可能随时调整。"
+  },
+  moreTools: {
+    eyebrow: "继续创作",
+    title: "接着试试其他创作者工具。",
+    description: "从素材获取继续到清理与加工，无需离开未然Lab。",
+    all: "浏览全部工具"
   },
   planned: {
     eyebrow: "专属工具页面",

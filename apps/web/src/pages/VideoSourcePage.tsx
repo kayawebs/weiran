@@ -4,6 +4,7 @@ import { AdSlot } from "../ads/AdSlot";
 import { api, apiMediaUrl, ApiError } from "../api";
 import { platformGuideFor } from "../catalog/platformGuides";
 import { PageIntro } from "../components/PageIntro";
+import { MoreToolsSection } from "../components/MoreToolsSection";
 import { PlatformLinkGuide } from "../components/PlatformLinkGuide";
 import { Seo } from "../components/Seo";
 import { copy } from "../i18n/copy";
@@ -122,6 +123,7 @@ export function VideoSourcePage() {
         })}</div>
         <AdSlot placement="result-footer" />
       </section>}
+      <MoreToolsSection currentToolId="dola-video" />
       <AdSlot placement="tool-bottom" />
     </>
   );

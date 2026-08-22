@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AdSlot } from "../ads/AdSlot";
 import { api, ApiError } from "../api";
 import { PageIntro } from "../components/PageIntro";
+import { MoreToolsSection } from "../components/MoreToolsSection";
 import { Seo } from "../components/Seo";
 import { copy } from "../i18n/copy";
 import type { WatermarkRegion } from "../types";
@@ -104,6 +105,7 @@ export function ImageWatermarkPage() {
           <p className="fine-print">{copy.image.privacy}</p>
         </aside>
       </section>
+      <MoreToolsSection currentToolId="image-watermark" />
       <AdSlot placement="tool-bottom" />
     </>
   );

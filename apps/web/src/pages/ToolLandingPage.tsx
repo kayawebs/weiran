@@ -1,8 +1,8 @@
 import { Link, Navigate, useLocation } from "react-router-dom";
 import { AdSlot } from "../ads/AdSlot";
-import { categoryById, localize, toolByPath, toolsByCategory } from "../catalog/tools";
+import { categoryById, localize, toolByPath } from "../catalog/tools";
 import { platformGuideFor } from "../catalog/platformGuides";
-import { CatalogToolCard } from "../components/CatalogToolCard";
+import { MoreToolsSection } from "../components/MoreToolsSection";
 import { PageIntro } from "../components/PageIntro";
 import { PlatformLinkGuide } from "../components/PlatformLinkGuide";
 import { Seo } from "../components/Seo";
@@ -15,7 +15,6 @@ export function ToolLandingPage() {
   if (!tool) return <Navigate to="/tools" replace />;
   const category = categoryById(tool.category);
   const guide = platformGuideFor(tool.id);
-  const related = toolsByCategory(tool.category).filter((item) => item.id !== tool.id).slice(0, 3);
 
   return (
     <>
@@ -34,10 +33,7 @@ export function ToolLandingPage() {
       </section>
       {guide && <PlatformLinkGuide guide={guide} />}
       <AdSlot placement="tool-top" />
-      <section className="section related-tools">
-        <p className="section-label">{siteCopy.planned.related}</p>
-        <div className="catalog-tool-grid">{related.map((item, index) => <CatalogToolCard tool={item} index={index} key={item.id} />)}</div>
-      </section>
+      <MoreToolsSection currentToolId={tool.id} />
     </>
   );
 }

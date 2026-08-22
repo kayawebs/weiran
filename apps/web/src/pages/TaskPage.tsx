@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api";
 import { AdSlot } from "../ads/AdSlot";
 import { Seo } from "../components/Seo";
+import { MoreToolsSection } from "../components/MoreToolsSection";
 import { copy } from "../i18n/copy";
 import type { ResultFile, Task } from "../types";
 
@@ -43,7 +44,9 @@ export function TaskPage() {
   }, [navigate, taskId]);
 
   const status = task?.status ?? "PENDING";
+  const sourceToolId = task?.taskType === "IMAGE_WATERMARK_REMOVE" || task?.taskType === "IMAGE_PROCESS" ? "image-watermark" : "dola-video";
   return (
+    <>
     <section className="task-page">
       <Seo title={copy.task.labels[status]} description={copy.task.processing} path={`/tasks/${taskId}`} noIndex />
       <div className={`status-orb ${status.toLowerCase()}`}><span>{status === "SUCCESS" ? "✓" : status === "FAILED" ? "!" : ""}</span></div>
@@ -63,5 +66,7 @@ export function TaskPage() {
       {status === "SUCCESS" && <AdSlot placement="result-footer" />}
       <div className="task-actions"><Link className="secondary-action" to="/tools">{copy.task.another}</Link><Link className="text-link" to="/history">{copy.task.history} →</Link></div>
     </section>
+    {status === "SUCCESS" && <MoreToolsSection currentToolId={sourceToolId} />}
+    </>
   );
 }
