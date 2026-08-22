@@ -36,6 +36,22 @@ export function ImageWatermarkPage() {
     event.target.value = "";
   }
 
+  async function useSample() {
+    setError("");
+    try {
+      const response = await fetch("/samples/watermark-removal-test.png");
+      if (!response.ok) throw new Error("sample unavailable");
+      const blob = await response.blob();
+      const selected = new File([blob], "watermark-removal-test.png", { type: "image/png" });
+      if (previewUrl) URL.revokeObjectURL(previewUrl);
+      setFile(selected);
+      setPreviewUrl(URL.createObjectURL(selected));
+      setRegion({ x: 0.71, y: 0.885, width: 0.27, height: 0.08 });
+    } catch {
+      setError(copy.image.sampleError);
+    }
+  }
+
   function pointFromEvent(event: PointerEvent<HTMLDivElement>): Point {
     const bounds = event.currentTarget.getBoundingClientRect();
     return { x: Math.min(1, Math.max(0, (event.clientX - bounds.left) / bounds.width)), y: Math.min(1, Math.max(0, (event.clientY - bounds.top) / bounds.height)) };
@@ -83,11 +99,15 @@ export function ImageWatermarkPage() {
         <div className="image-stage-panel">
           <div className="step-heading"><span>01</span><div><h2>{copy.image.uploadTitle}</h2><p>{copy.image.uploadHint}</p></div></div>
           {!previewUrl ? (
-            <button className="upload-dropzone" type="button" onClick={() => inputRef.current?.click()}><span>＋</span><strong>{copy.image.choose}</strong><small>{copy.image.formats}</small></button>
+            <div className="upload-options">
+              <button className="upload-dropzone" type="button" onClick={() => inputRef.current?.click()}><span>＋</span><strong>{copy.image.choose}</strong><small>{copy.image.formats}</small></button>
+              <button className="text-button sample-button" type="button" onClick={() => void useSample()}>{copy.image.sample} →</button>
+            </div>
           ) : (
             <div className="selection-shell">
               <div className="selection-stage" onPointerDown={beginSelection} onPointerMove={moveSelection} onPointerUp={endSelection} onPointerCancel={endSelection}>
                 <img src={previewUrl} alt={copy.image.sourceAlt} draggable={false} />
+                {!region && <span className="selection-instruction"><strong>{copy.image.drawTitle}</strong><small>{copy.image.drawHint}</small></span>}
                 {region && <span className="selection-box" style={{ left: `${region.x * 100}%`, top: `${region.y * 100}%`, width: `${region.width * 100}%`, height: `${region.height * 100}%` }}><i>{copy.image.removeMarker}</i></span>}
               </div>
               <button type="button" className="text-button" onClick={() => inputRef.current?.click()}>{copy.image.chooseAgain}</button>
@@ -101,7 +121,7 @@ export function ImageWatermarkPage() {
           <label className={mode === "blur" ? "mode-option selected" : "mode-option"}><input type="radio" name="mode" checked={mode === "blur"} onChange={() => setMode("blur")} /><span><strong>{copy.image.blur}</strong><small>{copy.image.blurHint}</small></span></label>
           {region && <div className="region-readout"><span>{copy.image.selectedArea}</span><strong>{Math.round(region.width * 100)}% × {Math.round(region.height * 100)}%</strong></div>}
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button type="button" className="primary-action full-button" onClick={submit} disabled={!file || !region || submitting}>{submitting ? copy.image.uploading : copy.image.submit}<span>→</span></button>
+          <button type="button" className="primary-action full-button" onClick={submit} disabled={!file || submitting}>{submitting ? copy.image.uploading : copy.image.submit}<span>→</span></button>
           <p className="fine-print">{copy.image.privacy}</p>
         </aside>
       </section>

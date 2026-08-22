@@ -42,7 +42,7 @@ const en = {
   },
   image: {
     eyebrow: "IMAGE · CLEANUP", title: "Remove what gets in the way.", description: "Upload an authorized image and draw directly over the watermark. We restore the selected area while preserving the rest.", limit: "REGION PER TASK",
-    uploadTitle: "Upload and mark the area", uploadHint: "Drag a rectangle around the entire watermark.", choose: "Choose an image", formats: "JPG, PNG, or WebP", invalidFile: "Choose a JPG, PNG, or WebP image.", sourceAlt: "Selected source", removeMarker: "REMOVE", chooseAgain: "Choose a different image",
+    uploadTitle: "Upload and mark the area", uploadHint: "After uploading, drag a rectangle around the entire watermark.", choose: "Choose an image", sample: "Use the test image", sampleError: "The test image could not be loaded.", formats: "JPG, PNG, or WebP", invalidFile: "Choose a JPG, PNG, or WebP image.", sourceAlt: "Selected source", drawTitle: "Drag over the watermark", drawHint: "Press and drag to draw the area that should be repaired.", removeMarker: "REMOVE", chooseAgain: "Choose a different image",
     finishTitle: "Choose a finish", finishHint: "Smart repair works best for most backgrounds.", repair: "Smart repair", repairHint: "Rebuild the selected background", recommended: "Recommended", blur: "Soft blur", blurHint: "Obscure the selected area", selectedArea: "Selected area",
     selectError: "Draw a box over the watermark before continuing.", startError: "We could not start this task.", uploading: "Uploading…", submit: "Remove watermark", privacy: "Your file uploads directly to private object storage. The download link expires automatically."
   },
@@ -101,7 +101,7 @@ const zh: typeof en = {
   },
   image: {
     eyebrow: "图片 · 清理", title: "移除画面中的干扰。", description: "上传已获授权的图片，直接框选水印区域。系统会在保留其他内容的同时修复选中位置。", limit: "每个任务一个区域",
-    uploadTitle: "上传并框选区域", uploadHint: "拖动方框，完整覆盖需要移除的水印。", choose: "选择图片", formats: "支持 JPG、PNG、WebP", invalidFile: "请选择 JPG、PNG 或 WebP 图片。", sourceAlt: "已选择的原图", removeMarker: "移除", chooseAgain: "重新选择图片",
+    uploadTitle: "上传并框选区域", uploadHint: "上传后，在图片上按住并拖动方框，完整覆盖需要移除的水印。", choose: "选择图片", sample: "使用测试图片", sampleError: "测试图片加载失败。", formats: "支持 JPG、PNG、WebP", invalidFile: "请选择 JPG、PNG 或 WebP 图片。", sourceAlt: "已选择的原图", drawTitle: "请拖动框选水印", drawHint: "在图片上按住并拖动，画出需要修复的区域。", removeMarker: "移除", chooseAgain: "重新选择图片",
     finishTitle: "选择处理方式", finishHint: "大多数背景推荐使用智能修复。", repair: "智能修复", repairHint: "重建选中区域的背景", recommended: "推荐", blur: "柔和模糊", blurHint: "模糊遮盖选中区域", selectedArea: "已选区域",
     selectError: "请先框选需要移除的水印区域。", startError: "暂时无法创建任务，请稍后重试。", uploading: "正在上传…", submit: "开始去水印", privacy: "文件会直接上传到私有对象存储，结果下载链接将在有效期后自动失效。"
   },

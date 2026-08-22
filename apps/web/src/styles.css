@@ -300,6 +300,7 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 
 .image-workspace { grid-template-columns: minmax(0, 1.65fr) minmax(310px, .75fr); }
 .image-stage-panel { min-height: 590px; }
+.upload-options { display: grid; justify-items: center; }
 .upload-dropzone { width: 100%; min-height: 420px; border: 1px dashed #32495d; border-radius: 10px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; color: white; background: #081522; cursor: pointer; }
 .upload-dropzone:hover { border-color: var(--mint); background: rgba(32, 227, 189, .025); }
 .upload-dropzone > span { width: 56px; height: 56px; margin-bottom: 8px; display: grid; place-items: center; border: 1px solid rgba(32, 227, 189, .3); border-radius: 50%; color: var(--mint); font-size: 24px; }
@@ -308,9 +309,14 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 .selection-shell { display: grid; justify-items: center; gap: 14px; }
 .selection-stage { position: relative; max-width: 100%; display: inline-flex; background: #050c13; cursor: crosshair; touch-action: none; user-select: none; }
 .selection-stage img { max-height: 570px; width: auto; display: block; pointer-events: none; }
+.selection-instruction { position: absolute; inset: 50% auto auto 50%; width: min(310px, calc(100% - 32px)); padding: 15px 18px; border: 1px solid rgba(32,227,189,.5); border-radius: 8px; color: white; background: rgba(2,9,15,.88); box-shadow: 0 12px 40px rgba(0,0,0,.34); text-align: center; pointer-events: none; transform: translate(-50%,-50%); }
+.selection-instruction strong, .selection-instruction small { display: block; }
+.selection-instruction strong { margin-bottom: 5px; font-size: 15px; }
+.selection-instruction small { color: var(--muted); line-height: 1.45; }
 .selection-box { position: absolute; border: 2px solid var(--mint); background: rgba(32, 227, 189, .18); box-shadow: 0 0 0 9999px rgba(2, 9, 15, .35), 0 0 20px rgba(32, 227, 189, .22); pointer-events: none; }
 .selection-box i { position: absolute; left: -2px; top: -23px; padding: 3px 5px; color: #04121b; background: var(--mint); font: 800 8px ui-monospace, monospace; }
 .text-button { padding: 7px; border: 0; color: var(--mint); background: transparent; cursor: pointer; font-size: 13px; }
+.sample-button { margin-top: 10px; }
 .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .image-controls { display: flex; flex-direction: column; }
 .mode-option { margin-bottom: 12px; cursor: pointer; }
