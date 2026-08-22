@@ -32,6 +32,7 @@ export function VideoSourcePage() {
   const [result, setResult] = useState<ResolvedSource | null>(null);
   const [previewId, setPreviewId] = useState<string | null>(null);
   const autoScanStarted = useRef(false);
+  const resultsRef = useRef<HTMLElement | null>(null);
 
   const scanUrl = useCallback(async (sourceUrl: string) => {
     setError("");
@@ -53,6 +54,12 @@ export function VideoSourcePage() {
     void scanUrl(incomingUrl);
   }, [incomingUrl, scanUrl, shouldAutoScan]);
 
+  useEffect(() => {
+    if (!result) return;
+    const frame = window.requestAnimationFrame(() => resultsRef.current?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    return () => window.cancelAnimationFrame(frame);
+  }, [result]);
+
   async function submit(event: FormEvent) {
     event.preventDefault();
     setError("");
@@ -66,26 +73,26 @@ export function VideoSourcePage() {
   return (
     <>
       <Seo title={copy.video.title} description={copy.video.description} path="/download/dola" />
-      <PageIntro eyebrow={copy.video.eyebrow} title={copy.video.title} description={copy.video.description} aside={<span className="platform-chip"><i /> {copy.video.supported}</span>} />
-      <AdSlot placement="tool-top" />
-      <section className="tool-workspace">
-        <form className="workspace-panel" onSubmit={submit}>
-          <div className="step-heading"><span>01</span><div><h2>{copy.video.platformTitle}</h2><p>{copy.video.platformHint}</p></div></div>
-          <label className="platform-option selected"><span className="platform-logo has-logo"><img src="/logos/dola.png" alt="" /></span><span><strong>Dola</strong><small>{copy.video.publicLinks}</small></span><i>{copy.video.selected}</i></label>
-          <div className="form-divider" />
-          <div className="step-heading"><span>02</span><div><h2>{copy.video.urlTitle}</h2><p>{copy.video.urlHint}</p></div></div>
-          <div className="field-label-row"><label className="field-label" htmlFor="dola-url">{copy.video.fieldLabel}</label><a href="#copy-link-guide">{copy.video.needLink} ↓</a></div>
-          <div className="url-field"><input id="dola-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://www.dola.com/thread/..." autoComplete="url" /><span>URL</span></div>
+      <PageIntro compact eyebrow={copy.video.eyebrow} title={copy.video.title} description={copy.video.description} aside={<span className="platform-chip"><i /> {copy.video.supported}</span>} />
+      <section className="tool-workspace compact-source-workspace">
+        <form className="workspace-panel compact-source-panel" onSubmit={submit}>
+          <header className="compact-source-header">
+            <span className="platform-logo has-logo"><img src="/logos/dola.png" alt="" /></span>
+            <div><p className="section-label">DOLA</p><h2>{copy.video.urlTitle}</h2><p>{copy.video.urlHint}</p></div>
+          </header>
+          {guide && <PlatformLinkGuide guide={guide} compact />}
+          <div className="compact-source-input">
+            <div>
+              <label className="field-label" htmlFor="dola-url">{copy.video.fieldLabel}</label>
+              <div className="url-field"><input id="dola-url" type="url" value={url} onChange={(event) => setUrl(event.target.value)} placeholder="https://www.dola.com/thread/..." autoComplete="url" /><span>URL</span></div>
+            </div>
+            <button className="primary-action" type="submit" disabled={submitting}>{submitting ? copy.video.starting : copy.video.submit}<span>→</span></button>
+          </div>
           {error && <p className="form-error" role="alert">{error}</p>}
-          <button className="primary-action full-button" type="submit" disabled={submitting}>{submitting ? copy.video.starting : copy.video.submit}<span>→</span></button>
+          <p className="fine-print compact-source-legal">{copy.video.legal}</p>
         </form>
-        <aside className="workspace-aside">
-          <p className="section-label">{copy.video.how}</p>
-          <ol>{copy.video.steps.map((step, index) => <li key={step.title}><span>{index + 1}</span><div><strong>{step.title}</strong><p>{step.description}</p></div></li>)}</ol>
-          <p className="fine-print">{copy.video.legal}</p>
-        </aside>
       </section>
-      {result && <section className="source-results" aria-live="polite">
+      {result && <section className="source-results compact-source-results" aria-live="polite" ref={resultsRef}>
         <header className="source-results-header">
           <div><p className="section-label">{copy.video.found(result.videoCount)}</p><h2>{result.title || copy.video.resultsTitle}</h2></div>
           <span>{copy.video.expires(Math.round(result.expiresInSeconds / 60))}</span>
@@ -115,7 +122,7 @@ export function VideoSourcePage() {
         })}</div>
         <AdSlot placement="result-footer" />
       </section>}
-      {guide && <PlatformLinkGuide guide={guide} />}
+      <AdSlot placement="tool-bottom" />
     </>
   );
 }

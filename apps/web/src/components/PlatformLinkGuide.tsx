@@ -1,7 +1,23 @@
 import type { PlatformGuide } from "../catalog/platformGuides";
 import { siteCopy } from "../i18n/siteCopy";
 
-export function PlatformLinkGuide({ guide }: { guide: PlatformGuide }) {
+export function PlatformLinkGuide({ guide, compact = false }: { guide: PlatformGuide; compact?: boolean }) {
+  if (compact) {
+    return (
+      <section className="compact-link-guide" aria-labelledby="compact-link-guide-title">
+        <header>
+          <div><p className="section-label">{siteCopy.guide.eyebrow}</p><h2 id="compact-link-guide-title">{guide.title}</h2></div>
+          <div className="compact-guide-formats">{guide.linkFormats.slice(0, 2).map((format) => <code key={format}>{format}</code>)}</div>
+        </header>
+        <ol>
+          {guide.steps.slice(0, 3).map((item, index) => (
+            <li key={item.title}><span>{index + 1}</span><div><strong>{item.title}</strong><p>{item.description}</p></div></li>
+          ))}
+        </ol>
+      </section>
+    );
+  }
+
   return (
     <section className="section platform-link-guide" id="copy-link-guide">
       <header className="platform-guide-header">
