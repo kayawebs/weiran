@@ -48,7 +48,12 @@ function safeMediaUrl(rawValue: unknown): string | null {
   if (!raw) return null;
   try {
     const url = new URL(raw);
-    if (url.protocol !== "https:" || !MEDIA_HOSTS.some((host) => hostMatches(url.hostname.toLowerCase(), host))) return null;
+    if (url.protocol !== "https:" || /playwm/i.test(url.pathname)) return null;
+    const hostname = url.hostname.toLowerCase();
+    const cdnAllowed = MEDIA_HOSTS.some((host) => hostMatches(hostname, host));
+    const officialPlayEndpoint = hostMatches(hostname, "douyin.com") && /^\/aweme\/v1\/play\/?$/.test(url.pathname);
+    const legacyPlayEndpoint = hostMatches(hostname, "snssdk.com") && /^\/aweme\/v1\/play\/?$/.test(url.pathname);
+    if (!cdnAllowed && !officialPlayEndpoint && !legacyPlayEndpoint) return null;
     return url.toString();
   } catch {
     return null;
@@ -56,9 +61,23 @@ function safeMediaUrl(rawValue: unknown): string | null {
 }
 
 function urlList(value: unknown): string[] {
+  if (typeof value === "string") {
+    const url = safeMediaUrl(value);
+    return url ? [url] : [];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((candidate) => {
+      if (typeof candidate === "string") return safeMediaUrl(candidate) ?? [];
+      const source = record(candidate);
+      return safeMediaUrl(source.src) ?? [];
+    });
+  }
   const source = record(value);
   const candidates = list(source.url_list).length > 0 ? list(source.url_list) : list(source.urlList);
-  return candidates.map(safeMediaUrl).filter((url): url is string => Boolean(url));
+  return candidates.flatMap((candidate) => {
+    if (typeof candidate === "string") return safeMediaUrl(candidate) ?? [];
+    return safeMediaUrl(record(candidate).src) ?? [];
+  });
 }
 
 function preferredMediaUrl(value: unknown): string | null {
@@ -68,6 +87,20 @@ function preferredMediaUrl(value: unknown): string | null {
     const hostname = new URL(candidate).hostname;
     return /^(?:v\d+|v3)-web\./i.test(hostname);
   }) ?? candidates[0] ?? null;
+}
+
+function firstPreferredMediaUrl(...values: unknown[]): string | null {
+  for (const value of values) {
+    const url = preferredMediaUrl(value);
+    if (url) return url;
+  }
+  return null;
+}
+
+function playUrlFromUri(value: unknown): string | null {
+  const uri = text(value).trim();
+  if (!/^[A-Za-z0-9._~-]{8,200}$/.test(uri)) return null;
+  return `https://aweme.snssdk.com/aweme/v1/play/?video_id=${encodeURIComponent(uri)}&ratio=1080p&line=0`;
 }
 
 function coverUrl(detail: UnknownRecord): string | null {
@@ -106,7 +139,13 @@ function parseVideoStreams(detail: UnknownRecord, awemeId: string): MediaStream[
   const video = record(detail.video);
   const videoWidth = finiteNumber(video.width);
   const videoHeight = finiteNumber(video.height);
-  const primaryUrl = preferredMediaUrl(video.play_addr);
+  const primaryAddress = record(video.play_addr);
+  const primaryUrl = firstPreferredMediaUrl(
+    video.play_addr_h264,
+    video.play_addr,
+    video.playAddr,
+    video.playApi
+  ) ?? playUrlFromUri(primaryAddress.uri ?? video.uri);
   const streams: MediaStream[] = [];
 
   if (primaryUrl) {
@@ -122,11 +161,13 @@ function parseVideoStreams(detail: UnknownRecord, awemeId: string): MediaStream[
     });
   }
 
-  const bitrateItems = list(video.bit_rate).map(record).sort((left, right) =>
+  const bitrateSource = list(video.bit_rate).length > 0 ? list(video.bit_rate) : list(video.bitRateList);
+  const bitrateItems = bitrateSource.map(record).sort((left, right) =>
     (finiteNumber(right.bit_rate) ?? 0) - (finiteNumber(left.bit_rate) ?? 0));
   for (const bitrate of bitrateItems) {
     const playAddress = record(bitrate.play_addr);
-    const url = preferredMediaUrl(playAddress);
+    const url = firstPreferredMediaUrl(bitrate.play_addr, bitrate.playAddr)
+      ?? playUrlFromUri(playAddress.uri ?? bitrate.uri);
     if (!url) continue;
     const width = finiteNumber(playAddress.width) ?? finiteNumber(bitrate.width) ?? videoWidth;
     const height = finiteNumber(playAddress.height) ?? finiteNumber(bitrate.height) ?? videoHeight;
@@ -138,6 +179,23 @@ function parseVideoStreams(detail: UnknownRecord, awemeId: string): MediaStream[
       mimeType: "video/mp4",
       quality: qualityFromDimensions(width, height),
       label: `${qualityFromDimensions(width, height).toUpperCase()} · ${codec}`,
+      width: width ?? undefined,
+      height: height ?? undefined,
+      requestHeaders: videoHeaders(awemeId),
+      watermarked: false
+    });
+  }
+
+  const h265Url = preferredMediaUrl(video.play_addr_265);
+  if (h265Url) {
+    const address = record(video.play_addr_265);
+    const width = finiteNumber(address.width) ?? videoWidth;
+    const height = finiteNumber(address.height) ?? videoHeight;
+    streams.push({
+      url: h265Url,
+      mimeType: "video/mp4",
+      quality: qualityFromDimensions(width, height),
+      label: `${qualityFromDimensions(width, height).toUpperCase()} · H.265`,
       width: width ?? undefined,
       height: height ?? undefined,
       requestHeaders: videoHeaders(awemeId),

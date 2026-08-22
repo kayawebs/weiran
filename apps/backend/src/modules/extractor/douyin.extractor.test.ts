@@ -53,3 +53,30 @@ test("generates correctly shaped Douyin request tokens", () => {
   assert.equal(signature.endsWith("="), true);
   assert.equal(signature.length > 100, true);
 });
+
+test("accepts official play endpoints and falls back to a validated play URI", () => {
+  const official = parseDouyinAweme({
+    aweme_id: "7676007739797163327",
+    desc: "Web share video",
+    video: {
+      duration: 10_000,
+      width: 1080,
+      height: 1920,
+      play_addr: {
+        uri: "v0d00fg10000da3aefnog65hjeuqm1h0",
+        url_list: ["https://www.douyin.com/aweme/v1/play/?video_id=clean&line=0"]
+      }
+    }
+  }, "https://v.douyin.com/tIki5F1Tfl4/");
+  assert.equal(official.items[0]?.streams[0]?.url.startsWith("https://www.douyin.com/aweme/v1/play/"), true);
+
+  const fallback = parseDouyinAweme({
+    aweme_id: "7676007739797163327",
+    desc: "Overseas response",
+    video: {
+      duration: 10_000,
+      play_addr: { uri: "v0d00fg10000da3aefnog65hjeuqm1h0", url_list: [] }
+    }
+  }, "https://v.douyin.com/tIki5F1Tfl4/");
+  assert.equal(fallback.items[0]?.streams[0]?.url, "https://aweme.snssdk.com/aweme/v1/play/?video_id=v0d00fg10000da3aefnog65hjeuqm1h0&ratio=1080p&line=0");
+});
