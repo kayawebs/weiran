@@ -13,6 +13,7 @@
     "build:web:cn": "npm run build:cn --workspace=@creator-tools/web",
     "build:web:global": "npm run build:global --workspace=@creator-tools/web",
     "build": "npm run build --workspaces --if-present",
+    "deploy:global": "./deploy/push-and-deploy-global.sh",
     "test": "npm run test --workspace=@creator-tools/backend",
     "typecheck": "npm run typecheck --workspaces --if-present",
     "migrate": "npm run migrate --workspace=@creator-tools/backend"

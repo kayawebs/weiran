@@ -162,6 +162,14 @@ https://tools.example.com/api
 
 ## 8. 更新与回滚前准备
 
+海外 Contabo 已配置本机 SSH 别名 `contabo` 且服务器仓库位于 `~/weiran` 时，推荐从本机执行完整发布：
+
+```bash
+npm run deploy:global
+```
+
+脚本会检查本机和服务器均为干净的 `main`，推送 GitHub、在服务器执行 `git pull --ff-only`、确认两端 commit 完全一致，再使用服务器现有的 `deploy/global.env` 重建全部容器并检查 API/Web。普通代码更新不会改动环境文件；只有代码新增了必填配置项或凭证发生变化时才需要更新它。
+
 常规更新：
 
 ```bash

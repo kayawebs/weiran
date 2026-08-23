@@ -11,7 +11,7 @@
 - 统一异步任务模型：`SOURCE_DOWNLOAD`、`IMAGE_WATERMARK_REMOVE`、`VIDEO_WATERMARK_REMOVE`
 - Docker PostgreSQL 任务/资产/事件审计模型，Docker Redis + BullMQ 重试队列，阿里云 OSS 私有存储
 - 图片水印区域：OpenCV inpaint 或模糊处理；视频按来源平台选择解析策略
-- Dola、Dreamina / CapCut、即梦 / Seedance、抖音：粘贴公开作品链接；抖音还支持整段分享文案。后端同步解析无水印视频并返回 Redis 随机短票据预览/下载链接，扫描阶段不下载、不写 OSS、不重编码
+- Dola、Dreamina / CapCut、即梦 / Seedance、豆包、抖音：粘贴公开作品链接；抖音还支持整段分享文案。后端同步解析无水印视频并返回 Redis 随机短票据预览/下载链接，扫描阶段不下载、不写 OSS、不重编码
 - 受控的 HTTPS 素材解析与下载（来源/媒体主机白名单、私有网络阻断、重定向与体积限制）
 - 可插拔 `SourceExtractor` 与平台定义，后续可继续增加内容平台 connector
 - 原生微信小程序：首页、工具分类、平台选择、URL 提交、多视频结果预览与保存
@@ -69,7 +69,7 @@ POST /v1/tasks
 }
 ```
 
-平台视频原画解析（`platform` 可取 `dola`、`dreamina`、`jimeng` 或 `douyin`）：
+平台视频原画解析（`platform` 可取 `dola`、`dreamina`、`jimeng`、`doubao` 或 `douyin`）：
 
 ```json
 POST /v1/sources/resolve
@@ -95,6 +95,7 @@ POST /v1/sources/resolve
 - `/download/dola`：扫描公开 Dola Thread，并在同页预览或下载全部源视频
 - `/download/dreamina`：解析公开 Dreamina / CapCut AI Work Detail 原始视频
 - `/download/jimeng`：解析公开即梦 / Seedance 分享页或 Work Detail 原始视频
+- `/download/doubao`：解析公开豆包 Thread 中的生成视频并下载原始 MP4
 - `/download/douyin`：从短链接、完整视频 URL 或整段复制文案提取抖音无水印视频、备用画质与原始 MP3
 - `/download/:platform`：每个 AI 应用的稳定专属页面；Extractor 未上线前显示开发中并设置 `noindex`
 - `/image/watermark-remover`：上传图片并用鼠标或触控拖拽水印区域
@@ -126,11 +127,19 @@ npm run build:web:global
 
 服务器使用 `deploy/cn.env.example` 或 `deploy/global.env.example` 作为模板。Global 服务器运行 `./deploy/init-global-env.sh` 即可一次性生成 JWT 与 PostgreSQL 强密码；脚本不会覆盖已有配置，之后只需填写 `deploy/global.env` 的 `OSS_*` 字段。广告未开通时保持 `WEB_AD_PROVIDER=none`；AdSense 审核通过后设置 `WEB_AD_PROVIDER=adsense`、公开的 Client ID 与各广告位 ID。不要创建长期 `cn` / `global` Git 分支；区域差异通过配置、文案目录和广告 Adapter 管理。
 
+海外 Contabo 日常发布可在本机执行：
+
+```bash
+npm run deploy:global
+```
+
+该命令要求本机 `contabo` SSH 别名可用、服务器仓库位于 `~/weiran`，并要求两端都在干净的 `main` 分支。它会先推送 GitHub，再让服务器快进拉取同一个 commit、使用服务器已有的 `deploy/global.env` 重建 Docker，最后检查 API 与 Web 容器。普通代码发布不会创建或修改生产环境文件；只有新增配置项或更换凭证时才需要编辑环境变量。
+
 ## 微信小程序
 
 在微信开发者工具导入 `apps/miniprogram`。当前项目显示名为“未然Lab”，并已配置 AppID `wxa5c763c97869a2aa`；小程序原始 ID 为 `gh_476d3d7733d7`。将 [app.js](apps/miniprogram/app.js) 中 `apiBaseUrl` 改为已备案的 HTTPS API 域名，并在小程序后台添加 request 合法域名，以及 OSS 域名的 uploadFile、downloadFile 合法域名。
 
-小程序采用“首页 / 工具 / 我的”三 Tab 架构：首页呈现未然Lab 的 AI 创作者工具平台定位和分类；图片、视频去水印属于“素材处理”分类。视频页不再上传视频或填写水印坐标，而是选择平台并粘贴公开 URL；当前启用 Dola、Dreamina / CapCut、即梦 / Seedance 与抖音，抖音支持直接粘贴整段分享文案，后台按平台返回一个或多个原始视频。素材获取、字幕、封面、格式转换等能力以未启用工具预留，不包含资讯、AI 情报、社区、会员或支付。AI 情报媒体应作为公众号、网站和短视频渠道的独立系统运营。用户应只处理拥有或已获授权使用的媒体；各来源 connector 还应遵守相应平台的条款与版权限制。
+小程序采用“首页 / 工具 / 我的”三 Tab 架构：首页呈现未然Lab 的 AI 创作者工具平台定位和分类；图片、视频去水印属于“素材处理”分类。视频页不再上传视频或填写水印坐标，而是选择平台并粘贴公开 URL；当前启用 Dola、Dreamina / CapCut、即梦 / Seedance、豆包与抖音，抖音支持直接粘贴整段分享文案，后台按平台返回一个或多个原始视频。素材获取、字幕、封面、格式转换等能力以未启用工具预留，不包含资讯、AI 情报、社区、会员或支付。AI 情报媒体应作为公众号、网站和短视频渠道的独立系统运营。用户应只处理拥有或已获授权使用的媒体；各来源 connector 还应遵守相应平台的条款与版权限制。
 
 ## 扩展新工具
 
