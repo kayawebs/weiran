@@ -21,7 +21,7 @@ export function Layout() {
     <div className="site-shell">
       <header className="site-header">
         <Link className="brand" to="/" aria-label={copy.layout.homeLabel} onClick={() => setMenuOpen(false)}>
-          <span className="brand-mark" aria-hidden="true"><span>W</span></span>
+          <span className="brand-mark" aria-hidden="true"><img src="/brand/weiran-mark.svg" alt="" /></span>
           <span>{marketConfig.brandName}</span>
         </Link>
         <button className="menu-button" type="button" aria-label={copy.layout.menu} aria-expanded={menuOpen} onClick={() => setMenuOpen(!menuOpen)}>
@@ -37,7 +37,7 @@ export function Layout() {
       </header>
       <main key={location.pathname}><Outlet /></main>
       <footer className="site-footer">
-        <div className="footer-summary"><span className="footer-brand">{marketConfig.brandName}</span><p>{siteCopy.footer.tagline}</p><small>{siteCopy.footer.notice}</small></div>
+        <div className="footer-summary"><span className="footer-brand"><img src="/brand/weiran-mark.svg" alt="" aria-hidden="true" /><span>{marketConfig.brandName}</span></span><p>{siteCopy.footer.tagline}</p><small>{siteCopy.footer.notice}</small></div>
         <div className="footer-links"><strong>{siteCopy.footer.product}</strong><Link to="/tools">{siteCopy.footer.allTools}</Link><Link to="/history">{siteCopy.nav.history}</Link></div>
         <div className="footer-links"><strong>{siteCopy.footer.workspaces}</strong><Link to="/download">{siteCopy.nav.download}</Link><Link to="/image">{siteCopy.nav.image}</Link><Link to="/video">{siteCopy.nav.video}</Link><Link to="/creator">{siteCopy.nav.creator}</Link></div>
         <div className="footer-links"><strong>{siteCopy.footer.legal}</strong><Link to="/privacy">{siteCopy.footer.privacy}</Link><Link to="/terms">{siteCopy.footer.terms}</Link><Link to="/disclaimer">{siteCopy.footer.disclaimer}</Link></div>

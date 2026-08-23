@@ -27,9 +27,8 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 .site-shell { min-height: 100vh; }
 .site-header { position: relative; z-index: 20; height: 82px; display: flex; align-items: center; justify-content: space-between; max-width: 1280px; margin: 0 auto; padding: 0 32px; border-bottom: 1px solid var(--line); }
 .brand { display: inline-flex; align-items: center; gap: 12px; font-family: Manrope, sans-serif; font-weight: 800; letter-spacing: -.035em; }
-.brand-mark { position: relative; width: 36px; height: 36px; border: 1px solid rgba(90, 244, 218, .55); border-radius: 12px; display: grid; place-items: center; color: var(--mint); background: linear-gradient(145deg, rgba(32, 227, 189, .18), rgba(84, 102, 255, .17)); box-shadow: inset 0 0 18px rgba(32, 227, 189, .1); }
-.brand-mark::after { content: ""; position: absolute; right: -2px; top: -2px; width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 11px var(--mint); }
-.brand-mark span { font-size: 14px; }
+.brand-mark { width: 40px; height: 40px; display: block; flex: 0 0 40px; }
+.brand-mark img { width: 100%; height: 100%; display: block; }
 .site-header nav { display: flex; height: 100%; align-items: stretch; gap: 24px; color: var(--muted); font-size: 13px; }
 .site-header nav a { position: relative; display: flex; align-items: center; }
 .site-header nav a::after { content: ""; position: absolute; left: 0; right: 100%; bottom: -1px; height: 2px; background: var(--mint); transition: right .2s ease; }
@@ -395,7 +394,8 @@ h1, h2, h3, p { overflow-wrap: anywhere; }
 .legal-sections p { margin: 0; color: var(--muted); }
 .site-footer { max-width: 1280px; min-height: 260px; margin: 0 auto; padding: 52px 32px 32px; border-top: 1px solid var(--line); display: grid; grid-template-columns: minmax(240px, 1.5fr) repeat(3, minmax(120px, .65fr)); gap: 45px; align-items: start; color: #657a8e; font-size: 12px; }
 .site-footer p { margin: 5px 0 0; }
-.footer-brand { color: white; font: 700 16px Manrope, sans-serif; }
+.footer-brand { display: inline-flex; align-items: center; gap: 10px; color: white; font: 700 16px Manrope, sans-serif; }
+.footer-brand img { width: 30px; height: 30px; }
 .footer-summary small { display: block; max-width: 330px; margin-top: 19px; line-height: 1.6; }
 .footer-links { display: grid; gap: 10px; }
 .footer-links strong { margin-bottom: 5px; color: #d9e4ed; font-size: 12px; }
