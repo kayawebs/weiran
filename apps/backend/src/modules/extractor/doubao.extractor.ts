@@ -2,6 +2,7 @@ import { decryptByteDanceFplayUrl } from "./bytedance-fplay.js";
 import type { MediaItem, MediaSource, MediaStream, SourceExtractor } from "./source-extractor.js";
 
 const MAX_THREAD_HTML_BYTES = 6 * 1024 * 1024;
+const MAX_SNAPSHOT_JSON_BYTES = 4 * 1024 * 1024;
 const MAX_FPLAY_JSON_BYTES = 1024 * 1024;
 const DOUBAO_REFERER = "https://www.doubao.com/";
 const DOUBAO_USER_AGENT = "Mozilla/5.0 (compatible; WeiranLab/1.0; +https://weiran.art)";
@@ -201,9 +202,9 @@ async function resolveCleanStreams(rawFallbackUrl: string): Promise<MediaStream[
 
 type ParsedDoubaoThread = { source: MediaSource; fallbackApis: Map<string, string> };
 
-function parseDoubaoThread(html: string, originalUrl: string): ParsedDoubaoThread {
+function parseDoubaoPayloads(payloads: unknown[], originalUrl: string): ParsedDoubaoThread {
   const candidates = new Map<string, VideoCandidate>();
-  for (const payload of routePayloads(html)) collectCandidates(payload, candidates);
+  for (const payload of payloads) collectCandidates(payload, candidates);
 
   const items: MediaItem[] = [];
   const fallbackApis = new Map<string, string>();
@@ -231,7 +232,34 @@ function parseDoubaoThread(html: string, originalUrl: string): ParsedDoubaoThrea
 }
 
 export function parseDoubaoThreadHtml(html: string, originalUrl: string): MediaSource {
-  return parseDoubaoThread(html, originalUrl).source;
+  return parseDoubaoPayloads(routePayloads(html), originalUrl).source;
+}
+
+export function parseDoubaoSnapshotPayload(payload: unknown, originalUrl: string): MediaSource {
+  return parseDoubaoPayloads([payload], originalUrl).source;
+}
+
+async function fetchSnapshotPayload(canonicalUrl: URL, shareId: string): Promise<unknown> {
+  const snapshotUrl = new URL("/im/message/share/get", canonicalUrl.origin);
+  const response = await fetch(snapshotUrl, {
+    method: "POST",
+    redirect: "error",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Origin: canonicalUrl.origin,
+      Referer: canonicalUrl.toString(),
+      "User-Agent": DOUBAO_USER_AGENT
+    },
+    body: JSON.stringify({ share_id: shareId, need_bot_info: true }),
+    signal: AbortSignal.timeout(20_000)
+  });
+  if (!response.ok) throw new DoubaoExtractionError(`Doubao snapshot API returned HTTP ${response.status}`);
+  const declaredSize = Number(response.headers.get("content-length") ?? 0);
+  if (declaredSize > MAX_SNAPSHOT_JSON_BYTES) throw new DoubaoExtractionError("Doubao snapshot metadata is unexpectedly large");
+  const buffer = Buffer.from(await response.arrayBuffer());
+  if (buffer.byteLength > MAX_SNAPSHOT_JSON_BYTES) throw new DoubaoExtractionError("Doubao snapshot metadata is unexpectedly large");
+  try { return JSON.parse(buffer.toString("utf8")) as unknown; } catch { throw new DoubaoExtractionError("Doubao returned invalid snapshot metadata"); }
 }
 
 export class DoubaoExtractor implements SourceExtractor {
@@ -256,7 +284,16 @@ export class DoubaoExtractor implements SourceExtractor {
     if (declaredSize > MAX_THREAD_HTML_BYTES) throw new DoubaoExtractionError("Doubao thread page is unexpectedly large");
     const buffer = Buffer.from(await response.arrayBuffer());
     if (buffer.byteLength > MAX_THREAD_HTML_BYTES) throw new DoubaoExtractionError("Doubao thread page is unexpectedly large");
-    const parsed = parseDoubaoThread(buffer.toString("utf8"), url.toString());
+    let parsed: ParsedDoubaoThread;
+    try {
+      parsed = parseDoubaoPayloads(routePayloads(buffer.toString("utf8")), url.toString());
+    } catch (error) {
+      if (!(error instanceof DoubaoExtractionError) || error.code !== "DOUBAO_NO_VIDEO") throw error;
+      const shareId = canonicalUrl.pathname.split("/").filter(Boolean).at(-1);
+      if (!shareId) throw error;
+      const snapshot = await fetchSnapshotPayload(canonicalUrl, shareId);
+      parsed = parseDoubaoPayloads([snapshot], url.toString());
+    }
     await Promise.all(parsed.source.items.map(async (item) => {
       const fallbackApi = parsed.fallbackApis.get(item.id);
       if (!fallbackApi) throw new DoubaoExtractionError("Doubao did not expose an original video stream", "DOUBAO_CLEAN_SOURCE_UNAVAILABLE");

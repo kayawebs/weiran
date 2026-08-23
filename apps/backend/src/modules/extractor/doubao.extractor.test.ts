@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DoubaoExtractor, parseDoubaoThreadHtml } from "./doubao.extractor.js";
+import { DoubaoExtractor, parseDoubaoSnapshotPayload, parseDoubaoThreadHtml } from "./doubao.extractor.js";
 
 function encodeAttribute(value: string): string {
   return value
@@ -64,6 +64,38 @@ test("rejects Doubao thread payloads without resolvable generated videos", () =>
     () => parseDoubaoThreadHtml(html, "https://www.doubao.com/thread/test"),
     (error: unknown) => error instanceof Error && "code" in error && error.code === "DOUBAO_NO_VIDEO"
   );
+});
+
+test("parses the public Doubao snapshot API payload used outside China", () => {
+  const source = parseDoubaoSnapshotPayload({
+    data: {
+      share_info: { share_name: "夏日窗外视频生成" },
+      message_snapshot: {
+        message_list: [{
+          ext: {
+            creation_material_info: JSON.stringify({
+              material: {
+                creation_prompt: "海外分享接口中的视频",
+                result: {
+                  video: {
+                    vid: "v0369cg10004da5414i7dld6uj8id70g",
+                    duration: 8,
+                    video_model: JSON.stringify({
+                      fallback_api: "https://vas-lf-x.snssdk.com/video/fplay/1/47028cd55512217df3cb8dcb15db6f23/v0369cg10004da5414i7dld6uj8id70g?logo_type=video_gen_watermark_dyn"
+                    })
+                  }
+                }
+              }
+            })
+          }
+        }]
+      }
+    }
+  }, "https://www.doubao.com/thread/xDwHsY4OBRM5w2xCe");
+
+  assert.equal(source.items.length, 1);
+  assert.equal(source.items[0]?.title, "海外分享接口中的视频");
+  assert.equal(source.items[0]?.duration, 8);
 });
 
 test("only handles public Doubao thread URLs", () => {
