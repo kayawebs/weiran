@@ -114,7 +114,7 @@ export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePl
       </section>
       {result && <section className="source-results compact-source-results" aria-live="polite" ref={resultsRef}>
         <header className="source-results-header">
-          <div><p className="section-label">{copy.video.found(result.videoCount)}</p><h2>{result.title || copy.video.resultsTitle}</h2></div>
+          <div><p className="section-label">{copy.video.found(result.videoCount)}</p><h2>{copy.video.resultsTitle}</h2></div>
           <span>{copy.video.expires(Math.round(result.expiresInSeconds / 60))}</span>
         </header>
         <div className="source-result-list">{result.videos.map((video, index) => {
@@ -126,7 +126,7 @@ export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePl
             <div className="source-cover">{coverUrl ? <img src={coverUrl} alt="" loading="lazy" /> : <span>{platform.mark}</span>}</div>
             <div className="source-result-copy">
               <p>{copy.video.videoNumber(index + 1)}</p>
-              <h3>{video.title}</h3>
+              <h3 title={video.title}>{video.title}</h3>
               <div className="source-tags">
                 <span>{qualityLabel(video.quality, video.width, video.height)}</span>
                 <span className="clean-tag">{copy.video.noWatermark}</span>
@@ -135,7 +135,7 @@ export function VideoSourcePage({ platformId = "dola" }: { platformId?: SourcePl
               </div>
             </div>
             <div className="source-result-actions">
-              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download={video.filename}>{platform.id === "douyin" ? copy.video.downloadNoWatermark : copy.video.download}<span>↓</span></a>
+              <a className="primary-action" href={apiMediaUrl(video.downloadPath)} download={video.filename} aria-label={platform.id === "douyin" ? `${copy.video.downloadNoWatermark}: ${video.title}` : `${copy.video.download}: ${video.title}`}>{copy.video.download}<span>↓</span></a>
               <button className="secondary-action" type="button" onClick={() => setPreviewId(previewId === video.id ? null : video.id)}>{previewId === video.id ? copy.video.hidePreview : copy.video.preview}<span>{previewId === video.id ? "×" : "▶"}</span></button>
             </div>
             {extraDownloads.length > 0 && <div className="source-download-options">
