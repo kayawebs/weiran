@@ -1,14 +1,10 @@
-import { createDecipheriv, createHash } from "node:crypto";
 import type { MediaItem, MediaSource, MediaStream, SourceExtractor } from "./source-extractor.js";
+import { decryptByteDanceFplayUrl } from "./bytedance-fplay.js";
 
 const MAX_THREAD_HTML_BYTES = 5 * 1024 * 1024;
 const MAX_FPLAY_JSON_BYTES = 1024 * 1024;
 const DOLA_REFERER = "https://www.dola.com/";
 const DOLA_USER_AGENT = "Mozilla/5.0 (compatible; WeiranLab/1.0; +https://www.dola.com/)";
-const FPLAY_KDF_SALT = Buffer.from(
-  "TdTC5rgxYgkOUrPHpnM7pByyRiuCmrWKGWs521cXdST0m69/COjWjSanLjfBqVovHwWlGJKu8pSXMrYqOKrdWA==",
-  "base64"
-);
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -95,23 +91,12 @@ function decodeUrl(value: unknown): string | null {
   }
 }
 
-function base64Bytes(value: string): Buffer {
-  const normalized = value.replace(/-/g, "+").replace(/_/g, "/");
-  return Buffer.from(normalized.padEnd(Math.ceil(normalized.length / 4) * 4, "="), "base64");
-}
-
 export function decryptDolaStreamUrl(encryptedValue: string, keySeed: string): string {
-  const encrypted = base64Bytes(encryptedValue);
-  if (encrypted.length <= 20 || !encrypted.subarray(0, 4).equals(Buffer.from([0xa8, 0x00, 0x01, 0x00]))) {
+  try {
+    return decryptByteDanceFplayUrl(encryptedValue, keySeed);
+  } catch {
     throw new DolaExtractionError("Dola returned an unsupported encrypted media URL");
   }
-  const seed = base64Bytes(keySeed);
-  const firstHash = createHash("sha512").update(seed).digest();
-  const derived = createHash("sha512").update(Buffer.concat([firstHash, FPLAY_KDF_SALT])).digest();
-  const decipher = createDecipheriv("aes-128-cbc", derived.subarray(0, 16), derived.subarray(16, 32));
-  const decrypted = Buffer.concat([decipher.update(encrypted.subarray(4)), decipher.final()]).toString("utf8");
-  if (!/^https?:\/\//i.test(decrypted)) throw new DolaExtractionError("Dola returned an invalid decrypted media URL");
-  return decrypted;
 }
 
 function normalizeMediaUrl(rawUrl: string): string | null {

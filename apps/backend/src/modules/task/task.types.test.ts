@@ -29,6 +29,14 @@ test("accepts Dreamina and Jimeng public share URLs", () => {
   }).success, true);
 });
 
+test("accepts a public Doubao thread URL", () => {
+  const parsed = createTaskSchema.safeParse({
+    taskType: "VIDEO_WATERMARK_REMOVE",
+    input: { platform: "doubao", url: "https://www.doubao.com/thread/xDwHsY4OBRM5w2xCe" }
+  });
+  assert.equal(parsed.success, true);
+});
+
 test("accepts complete copied Douyin share text", () => {
   const copied = "6.64 复制打开抖音，看看【熊仔很黄酸🐻的作品】 https://v.douyin.com/X_Bk1Ya5o9c/ K@j.Px :8pm";
   const parsed = createTaskSchema.safeParse({

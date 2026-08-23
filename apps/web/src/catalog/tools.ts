@@ -98,9 +98,9 @@ export const tools: ToolDefinition[] = [
     tags: [text("Seedance", "Seedance"), text("AI video", "AI 视频")]
   },
   {
-    id: "doubao-video", category: "download", status: "planned", path: "/download/doubao", mark: "DB", logo: "/logos/doubao.png",
+    id: "doubao-video", category: "download", status: "live", path: "/download/doubao", mark: "DB", logo: "/logos/doubao.png",
     title: text("Doubao video downloader", "豆包视频下载"), shortTitle: text("Doubao", "豆包"),
-    description: text("Extract creator-ready video assets from supported public Doubao share links.", "从受支持的豆包公开分享链接提取可继续创作的视频素材。"),
+    description: text("Find generated videos in public Doubao threads and download their clean original MP4 files.", "解析公开豆包 Thread 中的生成视频并下载无水印原始 MP4。"),
     seoDescription: text("A dedicated Doubao AI video source download tool for creators.", "面向创作者的豆包 AI 视频专属素材下载工具。"),
     tags: [text("AI video", "AI 视频"), text("Public links", "公开链接")]
   },

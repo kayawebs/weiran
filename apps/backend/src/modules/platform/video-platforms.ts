@@ -1,4 +1,4 @@
-export const videoPlatformIds = ["dola", "dreamina", "jimeng", "douyin"] as const;
+export const videoPlatformIds = ["dola", "dreamina", "jimeng", "doubao", "douyin"] as const;
 export type VideoPlatformId = (typeof videoPlatformIds)[number];
 
 type PlatformWatermarkRegion = { x: number; y: number; width: number; height: number };
@@ -50,6 +50,18 @@ const platformDefinitions: Record<VideoPlatformId, VideoPlatformDefinition> = {
     urlPattern: /^(?:\/s\/[A-Za-z0-9_-]+|\/ai-tool\/work-detail\/[A-Za-z0-9_-]+)\/?$/,
     allowedHosts: ["jimeng.jianying.com"],
     invalidUrlMessage: "Enter a public Jimeng share URL",
+    requiresCleanSource: true,
+    watermarkRegions: []
+  },
+  doubao: {
+    id: "doubao",
+    name: "Doubao",
+    description: "提取公开豆包 Thread 中的原始视频",
+    urlPlaceholder: "https://www.doubao.com/thread/...",
+    extractorId: "doubao",
+    urlPattern: /^\/thread\/[A-Za-z0-9_-]+\/?$/,
+    allowedHosts: ["doubao.com", "www.doubao.com"],
+    invalidUrlMessage: "Enter a public Doubao thread URL",
     requiresCleanSource: true,
     watermarkRegions: []
   },

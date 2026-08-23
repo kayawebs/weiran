@@ -1,6 +1,6 @@
 import { marketConfig } from "../config/market";
 
-export type SourcePlatformId = "dola" | "dreamina" | "jimeng" | "douyin";
+export type SourcePlatformId = "dola" | "dreamina" | "jimeng" | "doubao" | "douyin";
 
 type LocalizedText = { en: string; "zh-CN": string };
 const text = (en: string, zh: string): LocalizedText => ({ en, "zh-CN": zh });
@@ -92,6 +92,24 @@ const definitions: Record<SourcePlatformId, SourcePlatformDefinition> = {
     fieldLabel: text("Jimeng public URL", "即梦公开链接"),
     invalid: text("Paste a valid public Jimeng /s/ share URL.", "请粘贴有效的即梦 /s/ 公开分享链接。"),
     isValidUrl: (url) => url.protocol === "https:" && hostIs(url, "jimeng.jianying.com") && /^(?:\/s\/[A-Za-z0-9_-]+|\/ai-tool\/work-detail\/[A-Za-z0-9_-]+)\/?$/.test(url.pathname)
+  },
+  doubao: {
+    id: "doubao",
+    toolId: "doubao-video",
+    path: "/download/doubao",
+    name: "Doubao",
+    mark: "DB",
+    logo: "/logos/doubao.png",
+    placeholder: "https://www.doubao.com/thread/...",
+    eyebrow: text("VIDEO · DOUBAO", "视频 · 豆包"),
+    title: text("Download the original Doubao video.", "下载豆包原始视频。"),
+    description: text("Paste a public Doubao thread URL to find every generated video and prepare clean MP4 downloads.", "粘贴公开豆包 Thread 链接，查找其中全部生成视频并下载无水印 MP4。"),
+    supported: text("DOUBAO SUPPORTED", "已支持豆包"),
+    urlTitle: text("Paste the Doubao thread URL", "粘贴豆包 Thread 链接"),
+    urlHint: text("A public thread can contain one or more generated videos.", "一个公开 Thread 中可能包含一个或多个生成视频。"),
+    fieldLabel: text("Public Doubao URL", "豆包公开链接"),
+    invalid: text("Paste a valid public Doubao /thread/ URL.", "请粘贴有效的豆包 /thread/ 公开链接。"),
+    isValidUrl: (url) => url.protocol === "https:" && ["doubao.com", "www.doubao.com"].includes(url.hostname.toLowerCase()) && /^\/thread\/[A-Za-z0-9_-]+\/?$/.test(url.pathname)
   },
   douyin: {
     id: "douyin",

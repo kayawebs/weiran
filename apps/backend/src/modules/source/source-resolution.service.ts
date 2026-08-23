@@ -1,6 +1,7 @@
 import { env } from "../../config/env.js";
 import { DreaminaExtractor, JimengExtractor } from "../extractor/creator-work.extractor.js";
 import { DolaExtractor } from "../extractor/dola.extractor.js";
+import { DoubaoExtractor } from "../extractor/doubao.extractor.js";
 import { DouyinExtractor } from "../extractor/douyin.extractor.js";
 import { ExtractorRegistry, type MediaItem, type MediaStream } from "../extractor/source-extractor.js";
 import { extractFirstPublicUrl, getVideoPlatform, type VideoPlatformId } from "../platform/video-platforms.js";
@@ -65,6 +66,7 @@ export class SourceResolutionService {
     new DolaExtractor(),
     new DreaminaExtractor(),
     new JimengExtractor(),
+    new DoubaoExtractor(),
     new DouyinExtractor()
   ]);
 

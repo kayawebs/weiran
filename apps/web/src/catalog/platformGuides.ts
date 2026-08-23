@@ -89,16 +89,16 @@ const definitions: PlatformGuideDefinition[] = [
   },
   {
     toolId: "doubao-video",
-    title: text("How to copy a Doubao video link", "如何获取豆包视频分享链接"),
-    description: text("Copy the public share link from the generated video card.", "请从已生成的视频卡片中复制公开分享链接。"),
-    linkFormats: ["https://www.doubao.com/video-sharing?…"],
+    title: text("How to copy a Doubao thread link", "如何获取豆包 Thread 链接"),
+    description: text("Use the public thread URL that contains the generated video.", "请使用包含生成视频的公开 Thread 页面链接。"),
+    linkFormats: ["https://www.doubao.com/thread/…", "https://doubao.com/thread/…"],
     steps: [
-      step("Open the generated video", "打开生成的视频", "Find the finished AI video in Doubao and open its detail view.", "在豆包中找到已经生成完成的 AI 视频并打开详情。"),
-      step("Open Share", "打开分享菜单", "Tap the Share button or the more menu on the video.", "点击视频上的“分享”按钮或更多菜单。"),
-      step("Copy link", "复制链接", "Choose Copy link to create a public video-sharing address.", "选择“复制链接”，获得公开的 video-sharing 地址。"),
-      step("Paste the full link", "粘贴完整链接", "Paste the complete link, including its query parameters.", "粘贴完整链接，并保留问号后的所有参数。")
+      step("Open the conversation", "打开对话", "Open the Doubao conversation containing the completed generated video.", "打开包含已生成视频的豆包对话。"),
+      step("Create a public share", "生成公开分享", "Use Share to make the conversation accessible through a public thread page.", "点击“分享”，生成可公开访问的 Thread 页面。"),
+      step("Copy the thread URL", "复制 Thread 链接", "Copy the full doubao.com/thread/… address from Share or the browser bar.", "从分享面板或浏览器地址栏复制完整的 doubao.com/thread/… 链接。"),
+      step("Paste and scan", "粘贴并解析", "Paste the thread URL above. Every supported generated video will be listed separately.", "将 Thread 链接粘贴到上方，所有受支持的生成视频会分别列出。")
     ],
-    checks: [text("A chat page URL is not the same as a video share URL.", "对话页面地址不等于视频分享地址。"), text("The expected URL normally contains video-sharing.", "正确链接通常包含 video-sharing。"), text("Keep all characters after the question mark.", "请保留问号后的全部字符。")]
+    checks: [text("The URL must contain /thread/.", "链接中必须包含 /thread/。"), text("The thread must be accessible without signing in.", "Thread 必须无需登录即可访问。"), text("Private chats and editor URLs cannot be scanned.", "私密对话和编辑页面地址无法解析。")]
   },
   {
     toolId: "vibes-video",
