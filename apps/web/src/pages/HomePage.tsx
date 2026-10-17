@@ -21,6 +21,7 @@ export function HomePage() {
           <div className="hero-actions">
             <Link className="primary-action" to="/tools">{siteCopy.home.primary}<span>↗</span></Link>
             <Link className="secondary-action" to="/download">{siteCopy.home.secondary}<span>→</span></Link>
+            <a className="secondary-action" href="https://ai.weiran.art" target="_blank" rel="noopener noreferrer">{siteCopy.home.aiGateway}<span aria-hidden="true">↗</span></a>
           </div>
         </div>
         <div className="hero-orbit" aria-hidden="true"><span /><i>W</i></div>
